@@ -1,129 +1,243 @@
-import { ChevronsUpDown } from "lucide-react";
-import {
-  ComboBox as AriaComboBox,
-  type ComboBoxProps as AriaComboBoxProps,
-  Input as AriaInput,
-  type InputProps as AriaInputProps,
-  ListBox as AriaListBox,
-  type ListBoxProps as AriaListBoxProps,
-  type PopoverProps as AriaPopoverProps,
-  type ValidationResult as AriaValidationResult,
-  composeRenderProps,
-  Text,
-} from "react-aria-components";
-
+import * as React from "react";
+import { Check, ChevronsUpDown, Send, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 import { Button } from "@/components/ui/button";
-import { FieldError, FieldGroup, Label } from "@/components/ui/field";
 import {
-  ListBoxCollection,
-  ListBoxHeader,
-  ListBoxItem,
-  ListBoxSection,
-} from "@/components/ui/list-box";
-import { Popover } from "@/components/ui/popover";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useGetAllPokemons } from "@/data/pokemons";
+import { useState } from "react";
 
-const Combobox = AriaComboBox;
+import type { Pokemon, PokemonItem } from "@/types/pokedle.types"
 
-const ComboboxItem = ListBoxItem;
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = React.useState(false);
 
-const ComboboxHeader = ListBoxHeader;
+  React.useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    window.addEventListener("resize", listener);
+    return () => window.removeEventListener("resize", listener);
+  }, [matches, query]);
 
-const ComboboxSection = ListBoxSection;
-
-const ComboboxCollection = ListBoxCollection;
-
-const ComboboxInput = ({ className, ...props }: AriaInputProps) => (
-  <AriaInput
-    className={composeRenderProps(className, (className) =>
-      cn(
-        "flex h-10 w-full bg-background px-3 py-2 outline-none file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground",
-        /* Disabled */
-        "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
-        className,
-      ),
-    )}
-    {...props}
-  />
-);
-
-const ComboboxPopover = ({ className, ...props }: AriaPopoverProps) => (
-  <Popover
-    className={composeRenderProps(className, (className) =>
-      cn("w-[calc(var(--trigger-width)+4px)]", className),
-    )}
-    {...props}
-  />
-);
-
-const ComboboxListBox = <T extends object>({
-  className,
-  ...props
-}: AriaListBoxProps<T>) => (
-  <AriaListBox
-    className={composeRenderProps(className, (className) =>
-      cn(
-        "max-h-[inherit] overflow-auto p-1 outline-none [clip-path:inset(0_0_0_0_round_calc(var(--radius)-2px))]",
-        className,
-      ),
-    )}
-    {...props}
-  />
-);
-
-interface JollyComboBoxProps<T extends object>
-  extends Omit<AriaComboBoxProps<T>, "children"> {
-  label?: string;
-  description?: string | null;
-  errorMessage?: string | ((validation: AriaValidationResult) => string);
-  children: React.ReactNode | ((item: T) => React.ReactNode);
+  return matches;
 }
 
-function JollyComboBox<T extends object>({
-  label,
-  description,
-  errorMessage,
-  className,
-  children,
-  ...props
-}: JollyComboBoxProps<T>) {
+const CommandContent = ({
+  searchQuery,
+  setSearchQuery,
+  filteredItems,
+  selectedItem,
+  handleSelect,
+}: {
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+  filteredItems: PokemonItem[];
+  selectedItem: PokemonItem | null;
+  handleSelect: (value: string) => void;
+}) => (
+  <Command shouldFilter={false}>
+    <CommandInput
+      placeholder="Type Pokemon name..."
+      value={searchQuery}
+      onValueChange={setSearchQuery}
+    />
+    <CommandList className="max-h-[300px] overflow-y-auto">
+      {searchQuery.trim() === "" ? (
+        <div className="py-6 text-center text-sm text-muted-foreground">
+          Start typing to search Pokemon
+        </div>
+      ) : filteredItems.length === 0 ? (
+        <CommandEmpty>
+          No Pokemon found starting with "{searchQuery}"
+        </CommandEmpty>
+      ) : (
+        <CommandGroup>
+          {filteredItems.map((item) => (
+            <CommandItem
+              key={item.value}
+              value={item.value}
+              onSelect={handleSelect}
+              className="flex items-center gap-2"
+            >
+              <Check
+                className={cn(
+                  "h-4 w-4",
+                  selectedItem?.value === item.value
+                    ? "opacity-100"
+                    : "opacity-0"
+                )}
+              />
+              <div className="flex flex-col">
+                <span className="font-medium">{item.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  ID: #{item.id}
+                </span>
+              </div>
+              <img
+                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${item.id}.png`}
+                alt={item.label}
+                className="h-6 w-6 rounded"
+              />
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      )}
+    </CommandList>
+  </Command>
+);
+
+const SelectedPokemonCard = ({
+  selectedItem,
+}: {
+  selectedItem: PokemonItem;
+}) => (
+  <article className="flex flex-row gap-2 bg-muted p-3 rounded-lg">
+    <div>
+      <p className="text-sm font-medium">Selected Pokemon:</p>
+      <p className="text-sm text-muted-foreground">{selectedItem.label}</p>
+      <p className="text-xs text-muted-foreground mt-1">
+        Pokemon ID: #{selectedItem.id}
+      </p>
+    </div>
+    <img
+      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${selectedItem.id}.png`}
+      alt={selectedItem.label}
+      className="rounded"
+    />
+  </article>
+);
+
+export default function Component() {
+  const [open, setOpen] = React.useState(false);
+  const [selectedItem, setSelectedItem] = React.useState<PokemonItem | null>(
+    null
+  );
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [pokemonToSearch, setPokemonToSearch] = useState("");
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  const { data: pokemonData, isLoading, error } = useGetAllPokemons();
+
+  const pokemonItems: PokemonItem[] = React.useMemo(() => {
+    if (!pokemonData?.results) return [];
+
+    return pokemonData.results.map((pokemon: Pokemon) => {
+      const id = pokemon.url.split("/").filter(Boolean).pop() || "0";
+      return {
+        value: pokemon.name,
+        label:
+          pokemon.name.charAt(0).toUpperCase() +
+          pokemon.name.slice(1).replace("-", " "),
+        id: id,
+      };
+    });
+  }, [pokemonData]);
+
+  const filteredItems = React.useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase().trim();
+    return pokemonItems
+      .filter((item) => item.label.toLowerCase().startsWith(query))
+      .slice(0, 50);
+  }, [searchQuery, pokemonItems]);
+
+  const handleSubmit = () => {
+    if (selectedItem) {
+      setPokemonToSearch(selectedItem.value);
+      console.log("Selected Pokemon:", selectedItem.value);
+    }
+  };
+
+  const handleSelect = (currentValue: string) => {
+    const item = pokemonItems.find((item) => item.value === currentValue);
+    setSelectedItem(item || null);
+    setOpen(false);
+    setSearchQuery("");
+  };
+
+  const triggerButton = (
+    <Button variant="outline" className="w-full justify-between">
+      {selectedItem ? (
+        <span className="truncate">{selectedItem.label}</span>
+      ) : (
+        `Choose from ${pokemonItems.length.toLocaleString()} Pokemon(s)`
+      )}
+      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+    </Button>
+  );
+
+  const commandProps = {
+    searchQuery,
+    setSearchQuery,
+    filteredItems,
+    selectedItem,
+    handleSelect,
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 w-full max-w-md mx-auto p-6">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading Pokemon data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 w-full max-w-md mx-auto p-6">
+        <p className="text-sm text-red-500">Failed to load Pokemon data</p>
+        <p className="text-xs text-muted-foreground">Please try again later</p>
+      </div>
+    );
+  }
+
   return (
-    <Combobox
-      className={composeRenderProps(className, (className) =>
-        cn("group flex flex-col gap-2", className),
+    <div className="flex flex-col gap-4 w-full max-w-md mx-auto p-6">
+      <div className="space-y-2">
+        {isDesktop ? (
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+            <PopoverContent className="p-0 w-[400px]" align="start">
+              <CommandContent {...commandProps} />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <Drawer open={open} onOpenChange={setOpen}>
+            <DrawerTrigger asChild>{triggerButton}</DrawerTrigger>
+            <DrawerContent>
+              <div className="mt-4 border-t">
+                <CommandContent {...commandProps} />
+              </div>
+            </DrawerContent>
+          </Drawer>
+        )}
+      </div>
+
+      {selectedItem && (
+        <>
+          <Button onClick={handleSubmit} className="w-full">
+            <Send className="mr-2 h-4 w-4" />
+            Submit Pokemon
+          </Button>
+          <SelectedPokemonCard selectedItem={selectedItem} />
+        </>
       )}
-      {...props}
-    >
-      <Label>{label}</Label>
-      <FieldGroup className="p-0">
-        <ComboboxInput />
-        <Button variant="ghost" size="icon" className="mr-1 size-6 p-1">
-          <ChevronsUpDown aria-hidden="true" className="size-4 opacity-50" />
-        </Button>
-      </FieldGroup>
-      {description && (
-        <Text className="text-sm text-muted-foreground" slot="description">
-          {description}
-        </Text>
-      )}
-      <FieldError>{errorMessage}</FieldError>
-      <ComboboxPopover>
-        <ComboboxListBox>{children}</ComboboxListBox>
-      </ComboboxPopover>
-    </Combobox>
+    </div>
   );
 }
-
-export {
-  ComboboxSection,
-  Combobox,
-  ComboboxListBox,
-  ComboboxInput,
-  ComboboxCollection,
-  ComboboxItem,
-  ComboboxHeader,
-  ComboboxPopover,
-  JollyComboBox,
-};
-export type { JollyComboBoxProps };
