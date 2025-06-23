@@ -1,6 +1,5 @@
 import * as React from "react";
-import { Check, ChevronsUpDown, Send, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronsUpDown, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -17,9 +16,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useGetAllPokemons } from "@/data/pokemons";
-import { useState } from "react";
 
 import type { Pokemon, PokemonItem } from "@/types/pokedle.types"
+import useStore from "@/store/store";
 
 function useMediaQuery(query: string) {
   const [matches, setMatches] = React.useState(false);
@@ -41,7 +40,6 @@ const CommandContent = ({
   searchQuery,
   setSearchQuery,
   filteredItems,
-  selectedItem,
   handleSelect,
 }: {
   searchQuery: string;
@@ -72,26 +70,15 @@ const CommandContent = ({
               key={item.value}
               value={item.value}
               onSelect={handleSelect}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 justify-between"
             >
-              <Check
-                className={cn(
-                  "h-4 w-4",
-                  selectedItem?.value === item.value
-                    ? "opacity-100"
-                    : "opacity-0"
-                )}
-              />
-              <div className="flex flex-col">
+              <div className="flex flex-col ml-8">
                 <span className="font-medium">{item.label}</span>
-                <span className="text-xs text-muted-foreground">
-                  ID: #{item.id}
-                </span>
               </div>
               <img
-                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${item.id}.png`}
+                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item.id}.png`}
                 alt={item.label}
-                className="h-6 w-6 rounded"
+                className="rounded w-1/7 h-1/7 object-cover self-center mr-8"
               />
             </CommandItem>
           ))}
@@ -106,18 +93,15 @@ const SelectedPokemonCard = ({
 }: {
   selectedItem: PokemonItem;
 }) => (
-  <article className="flex flex-row gap-2 bg-muted p-3 rounded-lg">
+  <article className="flex flex-row gap-2 bg-muted p-3 rounded-lg justify-between">
     <div>
       <p className="text-sm font-medium">Selected Pokemon:</p>
       <p className="text-sm text-muted-foreground">{selectedItem.label}</p>
-      <p className="text-xs text-muted-foreground mt-1">
-        Pokemon ID: #{selectedItem.id}
-      </p>
     </div>
     <img
-      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${selectedItem.id}.png`}
+      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${selectedItem.id}.png`}
       alt={selectedItem.label}
-      className="rounded"
+      className="rounded w-1/4 h-1/4 object-cover self-center"
     />
   </article>
 );
@@ -128,10 +112,13 @@ export default function Component() {
     null
   );
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [pokemonToSearch, setPokemonToSearch] = useState("");
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
+  const addPokemon = useStore((state) => state.addPokemon);
+
   const { data: pokemonData, isLoading, error } = useGetAllPokemons();
+
+  const triesIncrementation = useStore((state) => state.triesIncrementation);
 
   const pokemonItems: PokemonItem[] = React.useMemo(() => {
     if (!pokemonData?.results) return [];
@@ -157,9 +144,10 @@ export default function Component() {
   }, [searchQuery, pokemonItems]);
 
   const handleSubmit = () => {
+
     if (selectedItem) {
-      setPokemonToSearch(selectedItem.value);
-      console.log("Selected Pokemon:", selectedItem.value);
+      addPokemon(selectedItem);
+      triesIncrementation(triesIncrementation.length);
     }
   };
 
@@ -208,12 +196,12 @@ export default function Component() {
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-md mx-auto p-6">
+    <div className="flex flex-col gap-4 w-full max-w-[350px] mx-auto py-6">
       <div className="space-y-2">
         {isDesktop ? (
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
-            <PopoverContent className="p-0 w-[400px]" align="start">
+            <PopoverContent className="p-0 w-[350px]" align="start">
               <CommandContent {...commandProps} />
             </PopoverContent>
           </Popover>
