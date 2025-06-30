@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useGetAllPokemons, useGetSingleRandomPokemon } from "@/data/pokemons";
-import { InputWithButton } from "@/components/ui/input-with-button";
 import { PokedleTable } from "@/components/pokedle-table";
 import ComboBox from "@/components/ui/combobox";
 

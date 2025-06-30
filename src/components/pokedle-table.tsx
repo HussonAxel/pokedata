@@ -12,7 +12,6 @@ export function PokedleTable() {
   const currentPokemon = useStore((s) => s.currentPokemon);
   const tries = useStore((s) => s.tries);
 
-  // Toujours appeler le hook, mais avec une valeur par défaut
   const { data, isLoading, error } = useGetSinglePokemon(currentPokemon?.id || 0);
 
   if (!currentPokemon) {
@@ -31,7 +30,7 @@ export function PokedleTable() {
 
   const { height, weight, sprites } = data.pokemonResponseData;
   const { habitat, color } = data.pokemonSpeciesResponseData;
-  const types = data.pokemonResponseData.types.map((type: string) => type.type.name);
+  const types = data.pokemonResponseData.types.map((type: { type: { name: string } }) => type.type.name);
   const officialArtwork = sprites.other['official-artwork'].front_default;
   const pokemonSpeciesRequiredFields = {
     height,
@@ -48,7 +47,10 @@ export function PokedleTable() {
     ...pokemonSpeciesRequiredFields,
     ...pokemonSpeciesOptionalFields,
   };
-  console.log("Current Pokémon data:", allFields);
+
+  let previousEntries: any[] = []
+  previousEntries = [...previousEntries, allFields];
+  console.log("Current Pokémon data:", previousEntries);
   return (
     <>
       <Table>
