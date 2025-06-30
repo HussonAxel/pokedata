@@ -1,5 +1,6 @@
 import {
   Table,
+  TableBody,
   TableCell,
   TableHead,
   TableHeader,
@@ -10,6 +11,7 @@ import useStore from "@/store/store";
 
 export function PokedleTable() {
   const currentPokemon = useStore((s) => s.currentPokemon);
+  const searchedPokemons = useStore((s) => s.searchedPokemons);
   const tries = useStore((s) => s.tries);
 
   const { data, isLoading, error } = useGetSinglePokemon(currentPokemon?.id || 0);
@@ -70,20 +72,29 @@ export function PokedleTable() {
             <TableHead className="font-semibold">Poids</TableHead>
           </TableRow>
         </TableHeader>
-        {/* <TableBody>
-          {pokemons.map((pokemon) => (
+        <TableBody>
+          {searchedPokemons.map((pokemon) => (
             <TableRow key={pokemon.id}>
-              <TableCell>{pokemon.name}</TableCell>
-              <TableCell>{pokemon.type1}</TableCell>
-              <TableCell>{pokemon.type2}</TableCell>
+              <TableCell>
+                <img
+                  src={`/assets/static/sprites/base/${pokemon.id}.webp`}
+                  alt={pokemon.label}
+                  className="w-16 h-16 "
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </TableCell>
+              {/* <TableCell>{pokemon.types[0]}</TableCell>
+              <TableCell>{pokemon.types[1]}</TableCell>
               <TableCell>{pokemon.habitat}</TableCell>
               <TableCell>{pokemon.color}</TableCell>
               <TableCell>{pokemon.evolutionStage}</TableCell>
               <TableCell>{pokemon.height}</TableCell>
-              <TableCell>{pokemon.weight}</TableCell>
+              <TableCell>{pokemon.weight}</TableCell> */}
             </TableRow>
           ))}
-        </TableBody> */}
+        </TableBody>
       </Table>
     </>
   );

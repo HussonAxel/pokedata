@@ -16,8 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useGetAllPokemons } from "@/data/pokemons";
-
-import type { Pokemon, PokemonItem } from "@/types/pokedle.types"
+import type { Pokemon, PokemonItem } from "@/types/pokedle.types";
 import useStore from "@/store/store";
 
 function useMediaQuery(query: string) {
@@ -25,13 +24,12 @@ function useMediaQuery(query: string) {
 
   React.useEffect(() => {
     const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
+    setMatches(media.matches);
+    
     const listener = () => setMatches(media.matches);
-    window.addEventListener("resize", listener);
-    return () => window.removeEventListener("resize", listener);
-  }, [matches, query]);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, [query]);
 
   return matches;
 }
@@ -45,23 +43,22 @@ const CommandContent = ({
   searchQuery: string;
   setSearchQuery: (value: string) => void;
   filteredItems: PokemonItem[];
-  selectedItem: PokemonItem | null;
   handleSelect: (value: string) => void;
 }) => (
   <Command shouldFilter={false}>
     <CommandInput
-      placeholder="Type Pokemon name..."
+      placeholder="Tapez le nom du Pokémon..."
       value={searchQuery}
       onValueChange={setSearchQuery}
     />
     <CommandList className="max-h-[300px] overflow-y-auto">
       {searchQuery.trim() === "" ? (
         <div className="py-6 text-center text-sm text-muted-foreground">
-          Start typing to search Pokemon
+          Commencez à taper pour rechercher un Pokémon
         </div>
       ) : filteredItems.length === 0 ? (
         <CommandEmpty>
-          No Pokemon found starting with "{searchQuery}"
+          Aucun Pokémon trouvé commençant par "{searchQuery}"
         </CommandEmpty>
       ) : (
         <CommandGroup>
@@ -76,9 +73,12 @@ const CommandContent = ({
                 <span className="font-medium">{item.label}</span>
               </div>
               <img
-                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item.id}.png`}
+                src={`/assets/static/sprites/base/${item.id}.webp`}
                 alt={item.label}
-                className="rounded w-1/7 h-1/7 object-cover self-center mr-8"
+                className="rounded w-12 h-12 object-cover self-center mr-8"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             </CommandItem>
           ))}
@@ -88,37 +88,33 @@ const CommandContent = ({
   </Command>
 );
 
-const SelectedPokemonCard = ({
-  selectedItem,
-}: {
-  selectedItem: PokemonItem;
-}) => (
+const SelectedPokemonCard = ({ selectedItem }: { selectedItem: PokemonItem }) => (
   <article className="flex flex-row gap-2 bg-muted p-3 rounded-lg justify-between">
     <div>
-      <p className="text-sm font-medium">Selected Pokemon:</p>
+      <p className="text-sm font-medium">Pokémon sélectionné :</p>
       <p className="text-sm text-muted-foreground">{selectedItem.label}</p>
     </div>
     <img
-      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${selectedItem.id}.png`}
+      src={`/assets/static/sprites/base/${selectedItem.id}.webp`}
       alt={selectedItem.label}
-      className="rounded w-1/4 h-1/4 object-cover self-center"
+      className="rounded w-16 h-16 object-cover self-center"
+      onError={(e) => {
+        e.currentTarget.style.display = 'none';
+      }}
     />
   </article>
 );
 
-export default function Component() {
+export default function PokemonCombobox() {
   const [open, setOpen] = React.useState(false);
-  const [selectedItem, setSelectedItem] = React.useState<PokemonItem | null>(
-    null
-  );
+  const [selectedItem, setSelectedItem] = React.useState<PokemonItem | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
+  
   const isDesktop = useMediaQuery("(min-width: 768px)");
-
   const addPokemon = useStore((state) => state.addPokemon);
-
+  const incrementTries = useStore((state) => state.triesIncrementation);
+  
   const { data: pokemonData, isLoading, error } = useGetAllPokemons();
-
-  const triesIncrementation = useStore((state) => state.triesIncrementation);
 
   const pokemonItems: PokemonItem[] = React.useMemo(() => {
     if (!pokemonData?.results) return [];
@@ -127,9 +123,7 @@ export default function Component() {
       const id = pokemon.url.split("/").filter(Boolean).pop() || "0";
       return {
         value: pokemon.name,
-        label:
-          pokemon.name.charAt(0).toUpperCase() +
-          pokemon.name.slice(1).replace("-", " "),
+        label: pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1).replace("-", " "),
         id: id,
       };
     });
@@ -144,10 +138,9 @@ export default function Component() {
   }, [searchQuery, pokemonItems]);
 
   const handleSubmit = () => {
-
     if (selectedItem) {
       addPokemon(selectedItem);
-      triesIncrementation(triesIncrementation.length);
+      incrementTries(1);
     }
   };
 
@@ -163,7 +156,7 @@ export default function Component() {
       {selectedItem ? (
         <span className="truncate">{selectedItem.label}</span>
       ) : (
-        `Choose from ${pokemonItems.length.toLocaleString()} Pokemon(s)`
+        `Choisir parmi ${pokemonItems.length.toLocaleString()} Pokémon(s)`
       )}
       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
     </Button>
@@ -173,7 +166,6 @@ export default function Component() {
     searchQuery,
     setSearchQuery,
     filteredItems,
-    selectedItem,
     handleSelect,
   };
 
@@ -181,7 +173,7 @@ export default function Component() {
     return (
       <div className="flex flex-col items-center justify-center gap-4 w-full max-w-md mx-auto p-6">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="text-sm text-muted-foreground">Loading Pokemon data...</p>
+        <p className="text-sm text-muted-foreground">Chargement des données Pokémon...</p>
       </div>
     );
   }
@@ -189,8 +181,8 @@ export default function Component() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 w-full max-w-md mx-auto p-6">
-        <p className="text-sm text-red-500">Failed to load Pokemon data</p>
-        <p className="text-xs text-muted-foreground">Please try again later</p>
+        <p className="text-sm text-red-500">Échec du chargement des données Pokémon</p>
+        <p className="text-xs text-muted-foreground">Veuillez réessayer plus tard</p>
       </div>
     );
   }
@@ -221,7 +213,7 @@ export default function Component() {
         <>
           <Button onClick={handleSubmit} className="w-full">
             <Send className="mr-2 h-4 w-4" />
-            Submit Pokemon
+            Soumettre le Pokémon
           </Button>
           <SelectedPokemonCard selectedItem={selectedItem} />
         </>
@@ -229,3 +221,4 @@ export default function Component() {
     </div>
   );
 }
+
