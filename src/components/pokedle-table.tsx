@@ -8,12 +8,16 @@ import {
 import { useGetSinglePokemon } from "@/data/pokemons";
 import useStore from "@/store/store";
 
-
-
 export function PokedleTable() {
   const currentPokemon = useStore((s) => s.currentPokemon);
-  const { data, isLoading, error } = useGetSinglePokemon(currentPokemon.id);
   const tries = useStore((s) => s.tries);
+
+  // Toujours appeler le hook, mais avec une valeur par défaut
+  const { data, isLoading, error } = useGetSinglePokemon(currentPokemon?.id || 0);
+
+  if (!currentPokemon) {
+    return <div>No Pokémon selected</div>;
+  }
 
   if (isLoading) {
     return <div>Loading…</div>;
@@ -25,9 +29,28 @@ export function PokedleTable() {
     return null;
   }
 
+  const { height, weight, sprites } = data.pokemonResponseData;
+  const { habitat, color } = data.pokemonSpeciesResponseData;
+  const types = data.pokemonResponseData.types.map((type: string) => type.type.name);
+  const officialArtwork = sprites.other['official-artwork'].front_default;
+  const pokemonSpeciesRequiredFields = {
+    height,
+    weight,
+    officialArtwork,
+    types,
+  };
+  const pokemonSpeciesOptionalFields = {
+    habitat: habitat.name,
+    color: color.name,
+  };
+
+  const allFields = {
+    ...pokemonSpeciesRequiredFields,
+    ...pokemonSpeciesOptionalFields,
+  };
+  console.log("Current Pokémon data:", allFields);
   return (
     <>
-      <h1>{currentPokemon.label}</h1>
       <Table>
         <TableHeader>
           <TableRow>

@@ -21,10 +21,9 @@ function App() {
       <header>
         <ComboBox />
         <PokedleTable />
-        <InputWithButton />
         {randomPokemon && (
           <div>
-            <h2>{randomPokemon.name}</h2>
+            <h2>random pokemon of the day : {randomPokemon.name}</h2>
           </div>
         )}
       </header>
