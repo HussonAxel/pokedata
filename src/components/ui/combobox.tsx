@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ChevronsUpDown, Send, Loader2 } from "lucide-react";
+import { ChevronsUpDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -51,7 +51,7 @@ const CommandContent = ({
       value={searchQuery}
       onValueChange={setSearchQuery}
     />
-    <CommandList className="max-h-[300px] overflow-y-auto w-full">
+    <CommandList className="max-h-[300px] overflow-y-auto">
       {searchQuery.trim() === "" ? (
         <div className="py-6 text-center text-sm text-muted-foreground">
           Commencez à taper pour rechercher un Pokémon
@@ -88,23 +88,6 @@ const CommandContent = ({
   </Command>
 );
 
-const SelectedPokemonCard = ({ selectedItem }: { selectedItem: PokemonItem }) => (
-  <article className="flex flex-row gap-2 bg-muted p-3 rounded-lg justify-between">
-    <div>
-      <p className="text-sm font-medium">Pokémon sélectionné :</p>
-      <p className="text-sm text-muted-foreground">{selectedItem.label}</p>
-    </div>
-    <img
-      src={`/assets/static/sprites/base/${selectedItem.id}.webp`}
-      alt={selectedItem.label}
-      className="rounded w-16 h-16 object-cover self-center"
-      onError={(e) => {
-        e.currentTarget.style.display = 'none';
-      }}
-    />
-  </article>
-);
-
 export default function PokemonCombobox() {
   const [open, setOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<PokemonItem | null>(null);
@@ -113,6 +96,9 @@ export default function PokemonCombobox() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const addPokemon = useStore((state) => state.addPokemon);
   const incrementTries = useStore((state) => state.triesIncrementation);
+
+  const tries = useStore((s) => s.tries);
+
   
   const { data: pokemonData, isLoading, error } = useGetAllPokemons();
 
@@ -137,16 +123,15 @@ export default function PokemonCombobox() {
       .slice(0, 50);
   }, [searchQuery, pokemonItems]);
 
-  const handleSubmit = () => {
-    if (selectedItem) {
-      addPokemon(selectedItem);
-      incrementTries(1);
-    }
-  };
+
 
   const handleSelect = (currentValue: string) => {
     const item = pokemonItems.find((item) => item.value === currentValue);
-    setSelectedItem(item || null);
+    if (item) {
+      addPokemon(item);
+      incrementTries(1);
+      setSelectedItem(item);
+    }
     setOpen(false);
     setSearchQuery("");
   };
@@ -188,12 +173,22 @@ export default function PokemonCombobox() {
   }
 
   return (
-    <div className="flex flex-col gap-4 w-3/4 mx-auto py-6">
+    <div className="flex flex-row gap-4 w-3/4 mx-auto py-6 px-4 my-12 justify-between border border-gray-200 rounded-md">
+      <div>
+        <h2 className="text-2xl font-bold">Pokemon Guessing Game : </h2>
+        <p className="text-sm text-muted-foreground">
+          {" "}
+          Number of tries :{" "}
+          <span className=" bg-gray-100 rounded-full py-1 px-2 font-semibold">
+            {tries}
+          </span>
+        </p>
+      </div>
       <div className="space-y-2">
         {isDesktop ? (
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
-            <PopoverContent className="p-0 w-full" align="start">
+            <PopoverContent className="p-0" align="start">
               <CommandContent {...commandProps} />
             </PopoverContent>
           </Popover>
@@ -208,16 +203,6 @@ export default function PokemonCombobox() {
           </Drawer>
         )}
       </div>
-
-      {selectedItem && (
-        <>
-          <Button onClick={handleSubmit} className="w-full">
-            <Send className="mr-2 h-4 w-4" />
-            Soumettre le Pokémon
-          </Button>
-          <SelectedPokemonCard selectedItem={selectedItem} />
-        </>
-      )}
     </div>
   );
 }
