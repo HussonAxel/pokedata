@@ -6,7 +6,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useGetSinglePokemon, useGetSingleRandomPokemon } from "@/data/pokemons";
+import {
+  useGetSinglePokemon,
+  useGetSingleRandomPokemon,
+} from "@/data/pokemons";
 import useStore from "@/store/store";
 
 export function PokedleTable() {
@@ -31,29 +34,33 @@ export function PokedleTable() {
   }
 
   const { height, weight, sprites } = data.pokemonResponseData;
-  const { habitat, color } = data.pokemonSpeciesResponseData;
-  const types = data.pokemonResponseData.types.map((type: { type: { name: string } }) => type.type.name);
-  const officialArtwork = sprites.other['official-artwork'].front_default;
+  const { color } = data.pokemonSpeciesResponseData;
+  const types = data.pokemonResponseData.types.map(
+    (type: { type: { name: string } }) => type.type.name
+  );
+  const officialArtwork = sprites.other["official-artwork"].front_default;
   const pokemonSpeciesRequiredFields = {
     height,
     weight,
     officialArtwork,
     types,
   };
-  const pokemonSpeciesOptionalFields = {
-    habitat: habitat?.name || "-",
-    color: color?.name || "-",
+    const pokemonSpeciesOptionalFields = {
+    color: color?.name|| "-",
   };
 
   const allNeededFields = {
     ...pokemonSpeciesRequiredFields,
-    ...pokemonSpeciesOptionalFields,
+    ...pokemonSpeciesOptionalFields
   };
 
-  if (currentPokemon && !pokemonDetailedData.some(item => item.id === currentPokemon.id)) {
+  if (
+    currentPokemon &&
+    !pokemonDetailedData.some((item) => item.id === currentPokemon.id)
+  ) {
     addPokemonDetailedData({
       id: currentPokemon.id,
-      ...allNeededFields
+      ...allNeededFields,
     });
   }
 
@@ -81,9 +88,11 @@ export function PokedleTable() {
           )}
           <TableRow className="text-md">
             <TableHead className="font-semibold text-center">Pokémon</TableHead>
+            <TableHead className="font-semibold text-center">
+              Pokedex number
+            </TableHead>
             <TableHead className="font-semibold text-center">Type 1</TableHead>
             <TableHead className="font-semibold text-center">Type 2</TableHead>
-            <TableHead className="font-semibold text-center">Habitat</TableHead>
             <TableHead className="font-semibold text-center">
               Couleur(s)
             </TableHead>
@@ -104,11 +113,20 @@ export function PokedleTable() {
                 <img
                   src={`/assets/static/sprites/base/${pokemon.id}.webp`}
                   alt={pokemon.label}
-                  className="w-16 h-16 "
+                  className="w-16 h-16 object-cover m-auto"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                   }}
                 />
+              </TableCell>
+              <TableCell
+                className={`${
+                  pokemon.id == randomPokemon?.pokemonResponseData.id
+                    ? "bg-[#d7ffdc]"
+                    : "bg-[#ffd7d8]"
+                }`}
+              >
+                {pokemon.id}
               </TableCell>
               <TableCell
                 className={`${
@@ -120,37 +138,54 @@ export function PokedleTable() {
               >
                 {pokemon.types[0]}
               </TableCell>
-              <TableCell className={`${
+              <TableCell
+                className={`${
                   pokemon.types[1] ===
                   randomPokemon?.pokemonResponseData.types[1].type.name
                     ? "bg-[#d7ffdc]"
                     : "bg-[#ffd7d8]"
-                }`}>{pokemon.types[1] || "N/A"}</TableCell>
-              <TableCell>{pokemon.habitat || "N/A"}</TableCell>
-              <TableCell className={`${
+                }`}
+              >
+                {pokemon.types[1] || "N/A"}
+              </TableCell>
+              <TableCell
+                className={`${
                   pokemon.color ===
                   randomPokemon?.pokemonSpeciesResponseData.color.name
                     ? "bg-[#d7ffdc]"
                     : "bg-[#ffd7d8]"
-                }`}>{pokemon.color || "N/A"}</TableCell>
-              <TableCell className={`${
+                }`}
+              >
+                {pokemon.color || "N/A"}
+              </TableCell>
+              <TableCell
+                className={`${
                   pokemon.evolutionStage ===
                   randomPokemon?.pokemonSpeciesResponseData.evolution_chain.name
                     ? "bg-[#d7ffdc]"
                     : "bg-[#ffd7d8]"
-                }`}>{pokemon.evolutionStage || "N/A"}</TableCell>
-              <TableCell className={`${
-                  pokemon.height ===
-                  randomPokemon?.pokemonResponseData.height
+                }`}
+              >
+                {pokemon.evolutionStage || "N/A"}
+              </TableCell>
+              <TableCell
+                className={`${
+                  pokemon.height === randomPokemon?.pokemonResponseData.height
                     ? "bg-[#d7ffdc]"
                     : "bg-[#ffd7d8]"
-                }`}>{pokemon.height / 10}m</TableCell>
-              <TableCell className={`${
-                  pokemon.weight ===
-                  randomPokemon?.pokemonResponseData.weight
+                }`}
+              >
+                {pokemon.height / 10}m
+              </TableCell>
+              <TableCell
+                className={`${
+                  pokemon.weight === randomPokemon?.pokemonResponseData.weight
                     ? "bg-[#d7ffdc]"
                     : "bg-[#ffd7d8]"
-                }`}>{pokemon.weight / 10}kg</TableCell>
+                }`}
+              >
+                {pokemon.weight / 10}kg
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

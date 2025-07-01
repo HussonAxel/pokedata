@@ -51,7 +51,7 @@ const CommandContent = ({
       value={searchQuery}
       onValueChange={setSearchQuery}
     />
-    <CommandList className="max-h-[300px] overflow-y-auto">
+    <CommandList className="max-h-[300px] overflow-y-auto w-full">
       {searchQuery.trim() === "" ? (
         <div className="py-6 text-center text-sm text-muted-foreground">
           Commencez à taper pour rechercher un Pokémon
@@ -188,12 +188,12 @@ export default function PokemonCombobox() {
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-[350px] mx-auto py-6">
+    <div className="flex flex-col gap-4 w-3/4 mx-auto py-6">
       <div className="space-y-2">
         {isDesktop ? (
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
-            <PopoverContent className="p-0 w-[350px]" align="start">
+            <PopoverContent className="p-0 w-full" align="start">
               <CommandContent {...commandProps} />
             </PopoverContent>
           </Popover>
