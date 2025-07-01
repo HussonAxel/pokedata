@@ -6,23 +6,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useGetSinglePokemon } from "@/data/pokemons";
+import { useGetSinglePokemon, useGetSingleRandomPokemon } from "@/data/pokemons";
 import useStore from "@/store/store";
 
 export function PokedleTable() {
   const currentPokemon = useStore((s) => s.currentPokemon);
-  const searchedPokemons = useStore((s) => s.searchedPokemons);
   const tries = useStore((s) => s.tries);
+  const pokemonDetailedData = useStore((s) => s.pokemonDetailedData);
+  const addPokemonDetailedData = useStore((s) => s.addPokemonDetailedData);
 
-  const { data, isLoading, error } = useGetSinglePokemon(currentPokemon?.id || 0);
+  const { data: randomPokemon } = useGetSingleRandomPokemon();
+
+  const { data, error } = useGetSinglePokemon(currentPokemon?.id || 0);
 
   if (!currentPokemon) {
     return <div>No Pokémon selected</div>;
   }
 
-  if (isLoading) {
-    return <div>Loading…</div>;
-  }
   if (error) {
     return <div>Error loading Pokémon</div>;
   }
@@ -45,14 +45,21 @@ export function PokedleTable() {
     color: color.name,
   };
 
-  const allFields = {
+  const allNeededFields = {
     ...pokemonSpeciesRequiredFields,
     ...pokemonSpeciesOptionalFields,
   };
 
-  let previousEntries: any[] = []
-  previousEntries = [...previousEntries, allFields];
-  console.log("Current Pokémon data:", previousEntries);
+  if (currentPokemon && !pokemonDetailedData.some(item => item.id === currentPokemon.id)) {
+    addPokemonDetailedData({
+      id: currentPokemon.id,
+      ...allNeededFields
+    });
+  }
+
+  console.log("Pokémon detailed data from store:", pokemonDetailedData);
+  console.log("Random Pokémon of the day:", randomPokemon);
+
   return (
     <>
       <Table>
@@ -61,6 +68,13 @@ export function PokedleTable() {
             <TableCell colSpan={7}>Number of tries : </TableCell>
             <TableCell>{tries}</TableCell>
           </TableRow>
+          {randomPokemon && (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center font-semibold text-green-600">
+                Pokémon du jour : {randomPokemon.pokemonResponseData.name} (ID: {randomPokemon.pokemonResponseData.id})
+              </TableCell>
+            </TableRow>
+          )}
           <TableRow className="text-md">
             <TableHead className="font-semibold">Pokémon</TableHead>
             <TableHead className="font-semibold">Type 1</TableHead>
@@ -73,7 +87,7 @@ export function PokedleTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {searchedPokemons.map((pokemon) => (
+          {pokemonDetailedData.map((pokemon) => (
             <TableRow key={pokemon.id}>
               <TableCell>
                 <img
@@ -81,17 +95,17 @@ export function PokedleTable() {
                   alt={pokemon.label}
                   className="w-16 h-16 "
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.style.display = "none";
                   }}
                 />
               </TableCell>
-              {/* <TableCell>{pokemon.types[0]}</TableCell>
-              <TableCell>{pokemon.types[1]}</TableCell>
+              <TableCell>{pokemon.types[0]}</TableCell>
+              <TableCell>{pokemon.types[1] || "-"}</TableCell>
               <TableCell>{pokemon.habitat}</TableCell>
               <TableCell>{pokemon.color}</TableCell>
               <TableCell>{pokemon.evolutionStage}</TableCell>
               <TableCell>{pokemon.height}</TableCell>
-              <TableCell>{pokemon.weight}</TableCell> */}
+              <TableCell>{pokemon.weight}</TableCell>
             </TableRow>
           ))}
         </TableBody>

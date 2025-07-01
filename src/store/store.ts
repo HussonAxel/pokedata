@@ -12,16 +12,24 @@ const useStore = create<PokemonState & PokemonActions>()(
         tries: 0,
         currentPokemon: initialSearchedPokemon,
         searchedPokemons: [],
+        pokemonDetailedData: [],
 
         addPokemon: (newPokemon) =>
           set((state) => {
-            console.log(state.currentPokemon);
             return {
               currentPokemon: newPokemon,
               searchedPokemons: [newPokemon, ...state.searchedPokemons],
             };
           }),
-        resetSearchedPokemons: () => set({ currentPokemon: null, searchedPokemons: [] }),
+        addPokemonDetailedData: (detailedData) =>
+          set((state) => ({
+            pokemonDetailedData: [detailedData, ...state.pokemonDetailedData],
+          })),
+        resetSearchedPokemons: () => set({ 
+          currentPokemon: null, 
+          searchedPokemons: [], 
+          pokemonDetailedData: [] 
+        }),
         triesIncrementation: () =>
           set((state) => ({ tries: (state.tries ?? 0) + 1 })),
         resetTries: () => set({ tries: 0 }),

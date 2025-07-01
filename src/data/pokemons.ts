@@ -51,9 +51,14 @@ export const useGetSingleRandomPokemon = () => {
       const randomId = Math.floor((seed % (pokemonCount?.count ?? 1)) + 1);
 
       const response = await axios.get(`${BASE_URL}/pokemon/${randomId}`);
+      const pokemonSpeciesResponse = await axios.get(
+        `${BASE_URL}/pokemon-species/${randomId}`
+      );
 
-      const data = response.data;
-      // console.log(`Pokemon du jour (${today}): ${data.name} (ID: ${randomId})`);
+      const data = {
+        pokemonResponseData: response.data,
+        pokemonSpeciesResponseData: pokemonSpeciesResponse.data,
+      };
       return data;
     },
     staleTime: 1000 * 60 * 60 * 24,
