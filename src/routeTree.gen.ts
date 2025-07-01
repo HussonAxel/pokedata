@@ -8,35 +8,48 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+
+const GamesPokedleLazyRouteImport = createFileRoute('/games/pokedle')()
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesPokedleLazyRoute = GamesPokedleLazyRouteImport.update({
+  id: '/games/pokedle',
+  path: '/games/pokedle',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/games/pokedle.lazy').then((d) => d.Route))
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/games/pokedle': typeof GamesPokedleLazyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/games/pokedle': typeof GamesPokedleLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/games/pokedle': typeof GamesPokedleLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/games/pokedle'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/games/pokedle'
+  id: '__root__' | '/' | '/games/pokedle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GamesPokedleLazyRoute: typeof GamesPokedleLazyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +61,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games/pokedle': {
+      id: '/games/pokedle'
+      path: '/games/pokedle'
+      fullPath: '/games/pokedle'
+      preLoaderRoute: typeof GamesPokedleLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GamesPokedleLazyRoute: GamesPokedleLazyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

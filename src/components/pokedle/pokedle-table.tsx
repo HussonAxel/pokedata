@@ -14,7 +14,6 @@ import useStore from "@/store/store";
 
 export function PokedleTable() {
   const currentPokemon = useStore((s) => s.currentPokemon);
-  const tries = useStore((s) => s.tries);
   const pokemonDetailedData = useStore((s) => s.pokemonDetailedData);
   const addPokemonDetailedData = useStore((s) => s.addPokemonDetailedData);
 
@@ -71,10 +70,6 @@ export function PokedleTable() {
     <>
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableCell colSpan={7}>Number of tries : </TableCell>
-            <TableCell>{tries}</TableCell>
-          </TableRow>
           {randomPokemon && (
             <TableRow>
               <TableCell
