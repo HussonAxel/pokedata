@@ -41,8 +41,8 @@ export function PokedleTable() {
     types,
   };
   const pokemonSpeciesOptionalFields = {
-    habitat: habitat.name,
-    color: color.name,
+    habitat: habitat?.name || "-",
+    color: color?.name || "-",
   };
 
   const allNeededFields = {
@@ -70,25 +70,36 @@ export function PokedleTable() {
           </TableRow>
           {randomPokemon && (
             <TableRow>
-              <TableCell colSpan={8} className="text-center font-semibold text-green-600">
-                Pokémon du jour : {randomPokemon.pokemonResponseData.name} (ID: {randomPokemon.pokemonResponseData.id})
+              <TableCell
+                colSpan={8}
+                className="text-center font-semibold text-green-600"
+              >
+                Pokémon du jour : {randomPokemon.pokemonResponseData.name} (ID:{" "}
+                {randomPokemon.pokemonResponseData.id})
               </TableCell>
             </TableRow>
           )}
           <TableRow className="text-md">
-            <TableHead className="font-semibold">Pokémon</TableHead>
-            <TableHead className="font-semibold">Type 1</TableHead>
-            <TableHead className="font-semibold">Type 2</TableHead>
-            <TableHead className="font-semibold">Habitat</TableHead>
-            <TableHead className="font-semibold">Couleur(s)</TableHead>
-            <TableHead className="font-semibold">Stade d'évolution</TableHead>
-            <TableHead className="font-semibold">Hauteur</TableHead>
-            <TableHead className="font-semibold">Poids</TableHead>
+            <TableHead className="font-semibold text-center">Pokémon</TableHead>
+            <TableHead className="font-semibold text-center">Type 1</TableHead>
+            <TableHead className="font-semibold text-center">Type 2</TableHead>
+            <TableHead className="font-semibold text-center">Habitat</TableHead>
+            <TableHead className="font-semibold text-center">
+              Couleur(s)
+            </TableHead>
+            <TableHead className="font-semibold text-center">
+              Stade d'évolution
+            </TableHead>
+            <TableHead className="font-semibold text-center">Hauteur</TableHead>
+            <TableHead className="font-semibold text-center">Poids</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {pokemonDetailedData.map((pokemon) => (
-            <TableRow key={pokemon.id}>
+            <TableRow
+              key={pokemon.id}
+              className="text-center text-md capitalize"
+            >
               <TableCell>
                 <img
                   src={`/assets/static/sprites/base/${pokemon.id}.webp`}
@@ -99,13 +110,47 @@ export function PokedleTable() {
                   }}
                 />
               </TableCell>
-              <TableCell>{pokemon.types[0]}</TableCell>
-              <TableCell>{pokemon.types[1] || "-"}</TableCell>
-              <TableCell>{pokemon.habitat}</TableCell>
-              <TableCell>{pokemon.color}</TableCell>
-              <TableCell>{pokemon.evolutionStage}</TableCell>
-              <TableCell>{pokemon.height}</TableCell>
-              <TableCell>{pokemon.weight}</TableCell>
+              <TableCell
+                className={`${
+                  pokemon.types[0] ===
+                  randomPokemon?.pokemonResponseData.types[0].type.name
+                    ? "bg-[#d7ffdc]"
+                    : "bg-[#ffd7d8]"
+                }`}
+              >
+                {pokemon.types[0]}
+              </TableCell>
+              <TableCell className={`${
+                  pokemon.types[1] ===
+                  randomPokemon?.pokemonResponseData.types[1].type.name
+                    ? "bg-[#d7ffdc]"
+                    : "bg-[#ffd7d8]"
+                }`}>{pokemon.types[1] || "N/A"}</TableCell>
+              <TableCell>{pokemon.habitat || "N/A"}</TableCell>
+              <TableCell className={`${
+                  pokemon.color ===
+                  randomPokemon?.pokemonSpeciesResponseData.color.name
+                    ? "bg-[#d7ffdc]"
+                    : "bg-[#ffd7d8]"
+                }`}>{pokemon.color || "N/A"}</TableCell>
+              <TableCell className={`${
+                  pokemon.evolutionStage ===
+                  randomPokemon?.pokemonSpeciesResponseData.evolution_chain.name
+                    ? "bg-[#d7ffdc]"
+                    : "bg-[#ffd7d8]"
+                }`}>{pokemon.evolutionStage || "N/A"}</TableCell>
+              <TableCell className={`${
+                  pokemon.height ===
+                  randomPokemon?.pokemonResponseData.height
+                    ? "bg-[#d7ffdc]"
+                    : "bg-[#ffd7d8]"
+                }`}>{pokemon.height / 10}m</TableCell>
+              <TableCell className={`${
+                  pokemon.weight ===
+                  randomPokemon?.pokemonResponseData.weight
+                    ? "bg-[#d7ffdc]"
+                    : "bg-[#ffd7d8]"
+                }`}>{pokemon.weight / 10}kg</TableCell>
             </TableRow>
           ))}
         </TableBody>
