@@ -67,7 +67,7 @@ export function PokedleTable() {
   console.log("Random Pokémon of the day:", randomPokemon);
 
   return (
-    <section className="my-12">
+    <section>
       <Table>
         <TableHeader>
           <TableRow className="text-md">
