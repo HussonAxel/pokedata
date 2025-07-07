@@ -38,8 +38,7 @@ export default function PokedleAccordionHints() {
 
   return (
     <div className="w-3/4 mx-auto py-6  my-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Carte 1 : Capacité */}
-      <Card>
+      <Card className={`${tries && tries >= 5 ? "cursor-pointer" : "cursor-not-allowed"}`}>
         <CardHeader className="flex flex-row items-center gap-3">
           <div className="bg-green-100 rounded-full p-2">
             <LucideZap className="text-green-500 h-6 w-6" />
@@ -52,7 +51,7 @@ export default function PokedleAccordionHints() {
         <CardContent>
           {showAbility && tries && tries >= 5 ? (
             <div
-              className="capitalize cursor-pointer text-center text-lg font-semibold py-2 rounded bg-green-50 hover:bg-green-100 transition"
+              className={`capitalize text-center text-lg font-semibold py-2 rounded bg-green-50 hover:bg-green-100 transition`}
               onClick={() => setShowAbility(false)}
               title="Cacher l'indice"
             >
@@ -69,7 +68,6 @@ export default function PokedleAccordionHints() {
           )}
         </CardContent>
       </Card>
-      {/* Carte 2 : Son */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-3">
           <div className="bg-indigo-100 rounded-full p-2">
@@ -101,7 +99,7 @@ export default function PokedleAccordionHints() {
                   </>
                 )}
               </Button>
-              <span className="text-xs text-muted-foreground cursor-pointer underline" onClick={() => setShowSound(false)}>
+              <span className="text-xs text-muted-foreground underline" onClick={() => setShowSound(false)}>
                 Cacher l'indice
               </span>
             </div>
@@ -118,7 +116,6 @@ export default function PokedleAccordionHints() {
           )}
         </CardContent>
       </Card>
-      {/* Carte 3 : Description */}
       <Card>
         <CardHeader className="flex flex-row items-center gap-3">
           <div className="bg-pink-100 rounded-full p-2">
@@ -132,7 +129,7 @@ export default function PokedleAccordionHints() {
         <CardContent>
           {showDescription && tries && tries >= 15 ? (
             <div
-              className="whitespace-pre-line text-center text-base font-medium bg-pink-50 rounded p-3 cursor-pointer hover:bg-pink-100 transition"
+              className="whitespace-pre-line text-center text-base font-medium bg-pink-50 rounded p-3 hover:bg-pink-100 transition"
               onClick={() => setShowDescription(false)}
               title="Cacher l'indice"
             >
