@@ -168,10 +168,10 @@ export default function PokemonCombobox() {
 
   return (
     <>
-    <div className="flex flex-row gap-4 w-3/4 mx-auto py-6 px-4 my-12 justify-between border border-gray-200 rounded-md">
-      <div>
-        <h2 className="text-2xl font-bold">Pokemon Guessing Game : </h2>
-        <p className="text-sm text-muted-foreground">
+    <div className="flex flex-col gap-4 w-3/4 mx-auto py-6 px-my-6 justify-center">
+      <div className="text-center w-full">
+        <h2 className="text-3xl font-bold mb-4">Pokemon Guessing Game : </h2>
+        <p className="text-md text-muted-foreground">
           {" "}
           Number of tries :{" "}
           <span className=" bg-gray-100 rounded-full py-1 px-2 font-semibold">
@@ -180,11 +180,11 @@ export default function PokemonCombobox() {
         </p>
       </div>
     </div>
-      <div className="space-y-2">
+      <div className="space-y-2 w-3/4 mx-auto">
         {isDesktop ? (
-          <Popover open={open} onOpenChange={setOpen}>
+          <Popover open={open} onOpenChange={setOpen} >
             <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
-            <PopoverContent className="p-0" align="start">
+            <PopoverContent align="center" className="PopoverContent">
               <CommandContent {...commandProps} />
             </PopoverContent>
           </Popover>
