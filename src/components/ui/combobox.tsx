@@ -75,7 +75,7 @@ const CommandContent = ({
               <img
                 src={`/assets/static/sprites/base/${item.id}.webp`}
                 alt={item.label}
-                className="rounded w-12 h-12 object-cover self-center mr-8"
+                className="rounded w-24 h-24 object-cover self-center mr-8"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
