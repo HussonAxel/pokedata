@@ -67,20 +67,9 @@ export function PokedleTable() {
   console.log("Random Pokémon of the day:", randomPokemon);
 
   return (
-    <>
+    <section className="my-12">
       <Table>
         <TableHeader>
-          {randomPokemon && (
-            <TableRow>
-              <TableCell
-                colSpan={8}
-                className="text-center font-semibold text-green-600"
-              >
-                Pokémon du jour : {randomPokemon.pokemonResponseData.name} (ID:{" "}
-                {randomPokemon.pokemonResponseData.id})
-              </TableCell>
-            </TableRow>
-          )}
           <TableRow className="text-md">
             <TableHead className="font-semibold text-center">Pokémon</TableHead>
             <TableHead className="font-semibold text-center">
@@ -185,6 +174,6 @@ export function PokedleTable() {
           ))}
         </TableBody>
       </Table>
-    </>
+    </section>
   );
 }

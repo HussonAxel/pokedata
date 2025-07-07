@@ -90,7 +90,6 @@ const CommandContent = ({
 
 export default function PokemonCombobox() {
   const [open, setOpen] = React.useState(false);
-  const [selectedItem, setSelectedItem] = React.useState<PokemonItem | null>(null);
   const [searchQuery, setSearchQuery] = React.useState("");
   
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -130,7 +129,6 @@ export default function PokemonCombobox() {
     if (item) {
       addPokemon(item);
       incrementTries(1);
-      setSelectedItem(item);
     }
     setOpen(false);
     setSearchQuery("");
@@ -138,11 +136,7 @@ export default function PokemonCombobox() {
 
   const triggerButton = (
     <Button variant="outline" className="w-full justify-between">
-      {selectedItem ? (
-        <span className="truncate">{selectedItem.label}</span>
-      ) : (
-        `Choisir parmi ${pokemonItems.length.toLocaleString()} Pokémon(s)`
-      )}
+      Choisir parmi {pokemonItems.length.toLocaleString()} Pokémon(s)
       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
     </Button>
   );
@@ -173,6 +167,7 @@ export default function PokemonCombobox() {
   }
 
   return (
+    <>
     <div className="flex flex-row gap-4 w-3/4 mx-auto py-6 px-4 my-12 justify-between border border-gray-200 rounded-md">
       <div>
         <h2 className="text-2xl font-bold">Pokemon Guessing Game : </h2>
@@ -184,6 +179,7 @@ export default function PokemonCombobox() {
           </span>
         </p>
       </div>
+    </div>
       <div className="space-y-2">
         {isDesktop ? (
           <Popover open={open} onOpenChange={setOpen}>
@@ -203,7 +199,7 @@ export default function PokemonCombobox() {
           </Drawer>
         )}
       </div>
-    </div>
+      </>
   );
 }
 

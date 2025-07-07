@@ -1,25 +1,35 @@
 {
   "../../../../../~start/default-client-entry.tsx": {
-    "file": "assets/main-CiIhbxHb.js",
+    "file": "assets/main-mBaDgTtA.js",
     "name": "main",
     "src": "../../../../../~start/default-client-entry.tsx",
     "isEntry": true,
     "dynamicImports": [
-      "src/routes/index.tsx?tsr-split=component"
+      "src/routes/index.tsx?tsr-split=component",
+      "src/routes/games/pokedle.lazy.tsx"
     ],
     "css": [
-      "assets/styles-CIPhKci4.css"
+      "assets/styles-BsWVJx1s.css"
     ],
     "assets": [
-      "assets/styles-CIPhKci4.css"
+      "assets/styles-BsWVJx1s.css"
     ]
   },
-  "C:/Users/aaaxe/Documents/www/pokedata/src/styles.css": {
-    "file": "assets/styles-CIPhKci4.css",
-    "src": "C:/Users/aaaxe/Documents/www/pokedata/src/styles.css"
+  "/home/axhus/Documents/Projets_Persos/pokedata/src/styles.css": {
+    "file": "assets/styles-BsWVJx1s.css",
+    "src": "/home/axhus/Documents/Projets_Persos/pokedata/src/styles.css"
+  },
+  "src/routes/games/pokedle.lazy.tsx": {
+    "file": "assets/pokedle.lazy-DFZMu65G.js",
+    "name": "pokedle.lazy",
+    "src": "src/routes/games/pokedle.lazy.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "../../../../../~start/default-client-entry.tsx"
+    ]
   },
   "src/routes/index.tsx?tsr-split=component": {
-    "file": "assets/index-BXpe3Hpp.js",
+    "file": "assets/index-DnWH1NOm.js",
     "name": "index",
     "src": "src/routes/index.tsx?tsr-split=component",
     "isDynamicEntry": true,
