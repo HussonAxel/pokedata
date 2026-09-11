@@ -10,6 +10,8 @@ export default defineConfig({
       "apps/web/.tanstack/**",
       "apps/web/src/routeTree.gen.ts",
       "packages/db/dist/**",
+      // SQL et snapshots produits par drizzle-kit : artefacts générés.
+      "packages/db/src/migrations/**",
     ],
     options: {
       typeAware: false,
@@ -25,6 +27,8 @@ export default defineConfig({
       "apps/web/.tanstack/**",
       "apps/web/src/routeTree.gen.ts",
       "packages/db/dist/**",
+      // SQL et snapshots produits par drizzle-kit : artefacts générés.
+      "packages/db/src/migrations/**",
     ],
     singleQuote: false,
     semi: true,
