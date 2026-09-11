@@ -1,0 +1,7 @@
+{
+  "extends": "@pokedata/config/tsconfig.base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@pokedata/ingest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ingest:fetch": "node src/cli.ts fetch",
+    "ingest:stage": "node src/cli.ts stage",
+    "ingest:transform": "node src/cli.ts transform",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "catalog:",
+    "pg": "^8.22.0",
+    "pg-copy-streams": "^7.0.0",
+    "tar": "^7.5.1"
+  },
+  "devDependencies": {
+    "@pokedata/config": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/pg": "^8.20.0",
+    "@types/pg-copy-streams": "^1.2.5",
+    "typescript": "catalog:"
+  }
+}
