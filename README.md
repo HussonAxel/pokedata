@@ -71,7 +71,16 @@ If you want to add app-specific blocks instead of shared primitives, run the sha
 
 ## Deployment
 
-### Docker Compose
+### Production
+
+Serveur personnel derrière un tunnel Cloudflare : voir `docs/deploiement.md`.
+
+```bash
+cp .env.production.example .env
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+### Docker Compose (développement)
 
 - Target: web + server
 - Config: `docker-compose.yml` (app Dockerfiles live in `apps/*/Dockerfile`)

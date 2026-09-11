@@ -1,0 +1,85 @@
+# Déploiement de production. Voir docs/deploiement.md.
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Aucun port n'est publié sur l'hôte : le trafic entre par le tunnel Cloudflare,
+# qui ouvre une connexion sortante. PostgreSQL n'est joignable que depuis le
+# réseau Docker interne.
+
+name: pokedata
+
+services:
+  # Applique les migrations avant le démarrage du site, puis s'arrête.
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    working_dir: /app
+    command: ["pnpm", "--filter", "@pokedata/db", "db:migrate:deploy"]
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant}@postgres:5432/pokedata
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    init: true
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant}@postgres:5432/pokedata
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET manquant}
+      BETTER_AUTH_URL: https://${APP_DOMAIN:?APP_DOMAIN manquant}
+      CORS_ORIGIN: https://${APP_DOMAIN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3001/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:18
+    container_name: pokedata-postgres-prod
+    environment:
+      POSTGRES_DB: pokedata
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant}
+    volumes:
+      - pokedata_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Expose le site sans ouvrir de port sur la box : la connexion part du serveur
+  # vers Cloudflare. Retirer ce service si tu exposes par redirection de ports.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?TUNNEL_TOKEN manquant}
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pokedata_postgres_data:
