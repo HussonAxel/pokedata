@@ -1,0 +1,28 @@
+{
+  "name": "@pokedata/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@orpc/client": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
+    "@orpc/zod": "catalog:",
+    "@pokedata/auth": "workspace:*",
+    "@pokedata/db": "workspace:*",
+    "@pokedata/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@pokedata/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

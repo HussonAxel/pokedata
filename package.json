@@ -1,0 +1,48 @@
+{
+  "name": "pokedata",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "vp run -r dev",
+    "build": "vp run -r build",
+    "check-types": "vp run -r check-types",
+    "check": "vp check && vp run -r check-types",
+    "lint": "vp lint",
+    "format": "vp fmt",
+    "staged": "vp staged",
+    "dev:web": "vp run --filter web dev",
+    "db:push": "vp run --filter @pokedata/db db:push",
+    "db:studio": "vp run --filter @pokedata/db db:studio",
+    "db:generate": "vp run --filter @pokedata/db db:generate",
+    "db:migrate": "vp run --filter @pokedata/db db:migrate",
+    "db:start": "docker compose up -d postgres",
+    "db:watch": "docker compose up postgres",
+    "db:stop": "docker compose stop postgres",
+    "db:down": "docker compose down postgres",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "dependencies": {
+    "@pokedata/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@pokedata/config": "workspace:*",
+    "@types/node": "catalog:",
+    "lefthook": "^2.1.12",
+    "rolldown": "1.2.6",
+    "typescript": "catalog:",
+    "vite-plus": "0.3.0"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.3.0"
+  },
+  "packageManager": "pnpm@11.9.0"
+}
