@@ -4,7 +4,7 @@ Squelette de navigation, sans données métier. Les identifiants des liens de d�
 
 Chaque page possède son propre index.tsx. Les dossiers organisent les URL ; ajouter route.tsx et Outlet lorsqu’un layout partagé devient nécessaire. Ne pas modifier routeTree.gen.ts à la main. Le catalogue src/features/navigation/pages.ts sert aux menus et au plan du site.
 
-Les capacités varient par jeu : masquer les rubriques non pertinentes après import. Les filtres, tris, pagination, source statistique, période et seuil de classement seront des search params validés par domaine, pas des routes supplémentaires.
+Les données du site sont versionnées par version de jeu : pas de routes `/jeux/...`, la dernière version sert de référence tant que le sélecteur de version n’existe pas. Les filtres, tris, pagination, source statistique, période et seuil de classement seront des search params validés par domaine, pas des routes supplémentaires.
 
 Les fiches de démonstration ne valident pas encore l’existence des identifiants. Ajouter les loaders et notFound avec les vrais référentiels. Les données privées devront aussi être protégées dans les procédures serveur. Les futures métadonnées SEO et règles d’indexation seront définies avant publication.
 
@@ -12,7 +12,6 @@ Les fiches de démonstration ne valident pas encore l’existence des identifian
 | -------------------------------------------------- | ---------------------------- | ---------- |
 | `/`                                                | Bienvenue sur Pokedata       | Accueil    |
 | `/explorer/`                                       | Explorer                     | Explorer   |
-| `/jeux/`                                           | Jeux vidéo                   | Jeux vidéo |
 | `/strategie/`                                      | Stratégie                    | Stratégie  |
 | `/collection/`                                     | Collection                   | Collection |
 | `/mini-jeux/`                                      | Mini-jeux                    | Mini-jeux  |
@@ -44,42 +43,13 @@ Les fiches de démonstration ne valident pas encore l’existence des identifian
 | `/encyclopedie/types/$typeId/`                     | Détail : Types               | Explorer   |
 | `/encyclopedie/mecaniques/`                        | Mécaniques                   | Explorer   |
 | `/encyclopedie/mecaniques/$slug/`                  | Détail : Mécaniques          | Explorer   |
-| `/jeux/$jeuId/`                                    | Présentation du jeu          | Jeux vidéo |
-| `/jeux/$jeuId/bien-debuter/`                       | Bien débuter                 | Jeux vidéo |
-| `/jeux/$jeuId/pokedex/`                            | Pokédex du jeu               | Jeux vidéo |
-| `/jeux/$jeuId/lieux/`                              | Lieux                        | Jeux vidéo |
-| `/jeux/$jeuId/lieux/$lieuId/`                      | Détail du lieu               | Jeux vidéo |
-| `/jeux/$jeuId/rencontres/`                         | Rencontres du jeu            | Jeux vidéo |
-| `/jeux/$jeuId/exclusivites/`                       | Exclusivités                 | Jeux vidéo |
-| `/jeux/$jeuId/evolutions/`                         | Méthodes d’évolution         | Jeux vidéo |
-| `/jeux/$jeuId/objets/`                             | Objets disponibles           | Jeux vidéo |
-| `/jeux/$jeuId/machines/`                           | CT et machines               | Jeux vidéo |
-| `/jeux/$jeuId/reproduction/`                       | Reproduction dans ce jeu     | Jeux vidéo |
-| `/jeux/$jeuId/shiny/`                              | Chasse aux chromatiques      | Jeux vidéo |
-| `/jeux/$jeuId/guides/`                             | Guides du jeu                | Jeux vidéo |
-| `/jeux/$jeuId/evenements/`                         | Événements du jeu            | Jeux vidéo |
-| `/strategie/debuter/`                              | Débuter en stratégie         | Stratégie  |
-| `/strategie/guides/`                               | Guides stratégiques          | Stratégie  |
-| `/strategie/guides/$slug/`                         | Guide stratégique            | Stratégie  |
-| `/strategie/lexique/`                              | Lexique                      | Stratégie  |
 | `/strategie/formats/`                              | Formats                      | Stratégie  |
-| `/strategie/formats/$formatId/`                    | Présentation du format       | Stratégie  |
-| `/strategie/formats/$formatId/regles/`             | Règles et règlement          | Stratégie  |
 | `/strategie/formats/$formatId/usages/`             | Statistiques d’usage         | Stratégie  |
 | `/strategie/formats/$formatId/pokemon/$pokemonId/` | Analyse du Pokémon           | Stratégie  |
 | `/strategie/formats/$formatId/cores/`              | Duos et noyaux d’équipe      | Stratégie  |
 | `/strategie/formats/$formatId/archetypes/`         | Archétypes                   | Stratégie  |
-| `/strategie/formats/$formatId/tier-list/`          | Tier list                    | Stratégie  |
 | `/equipes/`                                        | Équipes publiques            | Stratégie  |
 | `/equipes/$equipeId/`                              | Équipe partagée              | Stratégie  |
-| `/competition/`                                    | Compétition                  | Stratégie  |
-| `/competition/tournois/`                           | Tournois                     | Stratégie  |
-| `/competition/tournois/$tournoiId/`                | Détail du tournoi            | Stratégie  |
-| `/competition/joueurs/`                            | Joueurs compétitifs          | Stratégie  |
-| `/competition/joueurs/$joueurId/`                  | Résultats du joueur          | Stratégie  |
-| `/competition/classements/`                        | Classements                  | Stratégie  |
-| `/competition/replays/`                            | Replays                      | Stratégie  |
-| `/competition/replays/$replayId/`                  | Détail du replay             | Stratégie  |
 | `/outils/constructeur-equipe/`                     | Constructeur d’équipe        | Outils     |
 | `/outils/degats/`                                  | Calculateur de dégâts        | Outils     |
 | `/outils/couverture/`                              | Couverture des types         | Outils     |
