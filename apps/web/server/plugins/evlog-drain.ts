@@ -1,3 +1,4 @@
+import { definePlugin as defineNitroPlugin } from "nitro";
 import { createFsDrain } from "evlog/fs";
 
 export default defineNitroPlugin((nitroApp) => {

@@ -5,7 +5,8 @@
   "scripts": {
     "build": "vp build",
     "serve": "vp preview",
-    "dev": "vp dev"
+    "dev": "vp dev",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@orpc/client": "catalog:",

@@ -1,3 +1,4 @@
+import { definePlugin as defineNitroPlugin } from "nitro";
 import { auth } from "@pokedata/auth";
 import { createAuthIdentifier, type BetterAuthInstance } from "evlog/better-auth";
 
