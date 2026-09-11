@@ -11,6 +11,11 @@ export const getRouter = () => {
   const router = createTanStackRouter({
     routeTree,
     scrollRestoration: true,
+    // Le chargement d'une destination démarre au survol ou au début d'un appui,
+    // avant le clic. Combiné au cache Query, la navigation paraît instantanée.
+    defaultPreload: "intent",
+    // Laisse TanStack Query arbitrer la fraîcheur : le routeur ne redemande
+    // rien de son côté pendant un préchargement.
     defaultPreloadStaleTime: 0,
     context: { orpc, queryClient },
     defaultPendingComponent: () => <Loader />,
