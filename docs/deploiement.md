@@ -34,9 +34,9 @@ openssl rand -base64 32   # BETTER_AUTH_SECRET
 openssl rand -base64 24   # POSTGRES_PASSWORD
 ```
 
-Créer le tunnel dans le dashboard Cloudflare (Zero Trust → Networks → Tunnels),
-ajouter un hostname public pointant vers `http://web:3001`, puis copier le jeton
-dans `TUNNEL_TOKEN`.
+`TUNNEL_TOKEN` peut rester vide à ce stade : le tunnel se lance séparément.
+
+### 1. L'application
 
 ```bash
 docker compose -f docker-compose.prod.yml up -d --build
@@ -48,7 +48,24 @@ démarrer qu'après sa réussite. Vérifier :
 ```bash
 docker compose -f docker-compose.prod.yml ps
 docker compose -f docker-compose.prod.yml logs -f web
+curl -I http://localhost:3001
 ```
+
+Le port 3001 n'est publié que sur la boucle locale du serveur : il permet cette
+vérification, mais reste injoignable depuis le réseau local et depuis Internet.
+
+### 2. Le tunnel
+
+Créer le tunnel dans le dashboard Cloudflare (Zero Trust → Networks → Tunnels),
+ajouter un hostname public pointant vers `http://web:3001`, copier le jeton dans
+`TUNNEL_TOKEN`, puis :
+
+```bash
+docker compose -f docker-compose.prod.yml --profile tunnel up -d
+```
+
+Le profil est nécessaire à chaque commande qui doit inclure le tunnel, y compris
+les redémarrages et les mises à jour.
 
 ## Importer le catalogue
 
@@ -76,7 +93,7 @@ docker compose -f docker-compose.prod.yml run --rm --workdir /app web \
 
 ```bash
 git pull
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml --profile tunnel up -d --build
 ```
 
 Les migrations en attente sont appliquées automatiquement au démarrage.

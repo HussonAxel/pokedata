@@ -28,6 +28,11 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
     init: true
+    # Publié sur la boucle locale uniquement : joignable par `curl` depuis le
+    # serveur pour vérifier le déploiement, jamais depuis le réseau local ni
+    # depuis Internet. Le trafic public passe par le tunnel.
+    ports:
+      - "127.0.0.1:3001:3001"
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant}@postgres:5432/pokedata
@@ -70,12 +75,20 @@ services:
     restart: unless-stopped
 
   # Expose le site sans ouvrir de port sur la box : la connexion part du serveur
-  # vers Cloudflare. Retirer ce service si tu exposes par redirection de ports.
+  # vers Cloudflare.
+  #
+  # Sous profil, pour pouvoir démarrer et vérifier l'application avant que le
+  # tunnel n'existe :
+  #
+  #   docker compose -f docker-compose.prod.yml --profile tunnel up -d
+  #
+  # TUNNEL_TOKEN doit être renseigné avant d'activer le profil.
   cloudflared:
+    profiles: ["tunnel"]
     image: cloudflare/cloudflared:latest
     command: ["tunnel", "--no-autoupdate", "run"]
     environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?TUNNEL_TOKEN manquant}
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
     depends_on:
       web:
         condition: service_healthy
