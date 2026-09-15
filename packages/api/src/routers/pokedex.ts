@@ -9,8 +9,10 @@ import {
   stat,
   type,
   typeName,
+  typeEfficacy,
+  versionGroup,
 } from "@pokedata/db/schema/catalog";
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { publicProcedure } from "../index";
@@ -101,6 +103,11 @@ const detail = publicProcedure
         baseExperience: pokemon.baseExperience,
         captureRate: species.captureRate,
         genderRate: species.genderRate,
+        baseHappiness: species.baseHappiness,
+        hatchCounter: species.hatchCounter,
+        isBaby: species.isBaby,
+        hasGenderDifferences: species.hasGenderDifferences,
+        evolutionChainId: species.evolutionChainId,
         isLegendary: species.isLegendary,
         isMythical: species.isMythical,
         speciesId: species.id,
@@ -119,58 +126,167 @@ const detail = publicProcedure
       return null;
     }
 
-    const [types, stats, forms] = await Promise.all([
-      context.db
-        .select({
-          slot: pokemonType.slot,
-          identifier: type.identifier,
-          name: typeName.name,
-        })
-        .from(pokemonType)
-        .innerJoin(type, eq(type.id, pokemonType.typeId))
-        .innerJoin(typeName, and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)))
-        .where(
-          and(
-            eq(pokemonType.pokemonId, entry.id),
-            eq(pokemonType.generationId, input.generationId),
-          ),
-        )
-        .orderBy(asc(pokemonType.slot)),
-      context.db
-        .select({
-          identifier: stat.identifier,
-          baseStat: pokemonStat.baseStat,
-          effort: pokemonStat.effort,
-        })
-        .from(pokemonStat)
-        .innerJoin(stat, eq(stat.id, pokemonStat.statId))
-        .where(
-          and(
-            eq(pokemonStat.pokemonId, entry.id),
-            eq(pokemonStat.generationId, input.generationId),
-          ),
-        )
-        .orderBy(asc(pokemonStat.statId)),
-      context.db
-        .select({
-          id: pokemonForm.id,
-          identifier: pokemonForm.identifier,
-          formIdentifier: pokemonForm.formIdentifier,
-          isDefault: pokemonForm.isDefault,
-          isMega: pokemonForm.isMega,
-        })
-        .from(pokemonForm)
-        .where(eq(pokemonForm.pokemonId, entry.id))
-        .orderBy(asc(pokemonForm.formOrder)),
-    ]);
+    const [types, stats, forms, varieties, evolutionFamily, efficacy, availableGenerations, names] =
+      await Promise.all([
+        context.db
+          .select({
+            id: type.id,
+            slot: pokemonType.slot,
+            identifier: type.identifier,
+            name: typeName.name,
+          })
+          .from(pokemonType)
+          .innerJoin(type, eq(type.id, pokemonType.typeId))
+          .innerJoin(
+            typeName,
+            and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)),
+          )
+          .where(
+            and(
+              eq(pokemonType.pokemonId, entry.id),
+              eq(pokemonType.generationId, input.generationId),
+            ),
+          )
+          .orderBy(asc(pokemonType.slot)),
+        context.db
+          .select({
+            identifier: stat.identifier,
+            baseStat: pokemonStat.baseStat,
+            effort: pokemonStat.effort,
+          })
+          .from(pokemonStat)
+          .innerJoin(stat, eq(stat.id, pokemonStat.statId))
+          .where(
+            and(
+              eq(pokemonStat.pokemonId, entry.id),
+              eq(pokemonStat.generationId, input.generationId),
+            ),
+          )
+          .orderBy(asc(pokemonStat.statId)),
+        context.db
+          .select({
+            id: pokemonForm.id,
+            identifier: pokemonForm.identifier,
+            formIdentifier: pokemonForm.formIdentifier,
+            isDefault: pokemonForm.isDefault,
+            isMega: pokemonForm.isMega,
+            isBattleOnly: pokemonForm.isBattleOnly,
+            introducedIn: versionGroup.generationId,
+          })
+          .from(pokemonForm)
+          .leftJoin(versionGroup, eq(versionGroup.id, pokemonForm.introducedInVersionGroupId))
+          .where(
+            and(
+              eq(pokemonForm.pokemonId, entry.id),
+              or(
+                isNull(versionGroup.generationId),
+                lte(versionGroup.generationId, input.generationId),
+              ),
+            ),
+          )
+          .orderBy(asc(pokemonForm.formOrder)),
+        context.db
+          .select({ id: pokemon.id, identifier: pokemon.identifier, isDefault: pokemon.isDefault })
+          .from(pokemon)
+          .innerJoin(
+            pokemonType,
+            and(
+              eq(pokemonType.pokemonId, pokemon.id),
+              eq(pokemonType.generationId, input.generationId),
+              eq(pokemonType.slot, 1),
+            ),
+          )
+          .where(eq(pokemon.speciesId, entry.speciesId))
+          .orderBy(asc(pokemon.order), asc(pokemon.id)),
+        context.db
+          .select({
+            speciesId: species.id,
+            identifier: pokemon.identifier,
+            name: speciesName.name,
+            evolvesFromSpeciesId: species.evolvesFromSpeciesId,
+            introducedIn: species.generationId,
+          })
+          .from(species)
+          .innerJoin(
+            speciesName,
+            and(eq(speciesName.speciesId, species.id), eq(speciesName.language, input.locale)),
+          )
+          .innerJoin(pokemon, and(eq(pokemon.speciesId, species.id), eq(pokemon.isDefault, true)))
+          .innerJoin(
+            pokemonType,
+            and(
+              eq(pokemonType.pokemonId, pokemon.id),
+              eq(pokemonType.generationId, input.generationId),
+              eq(pokemonType.slot, 1),
+            ),
+          )
+          .where(
+            entry.evolutionChainId === null
+              ? eq(species.id, entry.speciesId)
+              : eq(species.evolutionChainId, entry.evolutionChainId),
+          )
+          .orderBy(asc(species.order), asc(species.id)),
+        context.db
+          .select({
+            identifier: type.identifier,
+            name: typeName.name,
+            targetTypeId: typeEfficacy.targetTypeId,
+            factor: typeEfficacy.factor,
+          })
+          .from(typeEfficacy)
+          .innerJoin(type, eq(type.id, typeEfficacy.damageTypeId))
+          .innerJoin(
+            typeName,
+            and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)),
+          )
+          .innerJoin(
+            pokemonType,
+            and(
+              eq(pokemonType.typeId, typeEfficacy.targetTypeId),
+              eq(pokemonType.pokemonId, entry.id),
+              eq(pokemonType.generationId, input.generationId),
+            ),
+          )
+          .where(eq(typeEfficacy.generationId, input.generationId))
+          .orderBy(asc(type.id)),
+        context.db
+          .select({ id: pokemonType.generationId })
+          .from(pokemonType)
+          .where(and(eq(pokemonType.pokemonId, entry.id), eq(pokemonType.slot, 1)))
+          .orderBy(asc(pokemonType.generationId)),
+        context.db
+          .select({
+            language: speciesName.language,
+            name: speciesName.name,
+            genus: speciesName.genus,
+          })
+          .from(speciesName)
+          .where(eq(speciesName.speciesId, entry.speciesId))
+          .orderBy(asc(speciesName.language)),
+      ]);
 
     // Une variété sans typage à cette génération n'y existait pas encore.
     if (types.length === 0) {
       return null;
     }
 
+    const matchups = new Map<string, { identifier: string; name: string; multiplier: number }>();
+    for (const row of efficacy) {
+      const current = matchups.get(row.identifier);
+      matchups.set(row.identifier, {
+        identifier: row.identifier,
+        name: row.name,
+        multiplier: ((current?.multiplier ?? 1) * row.factor) / 100,
+      });
+    }
+
     return {
       ...entry,
+      varieties,
+      evolutionFamily,
+      matchups: [...matchups.values()],
+      availableGenerations,
+      names,
       generationId: input.generationId,
       types,
       stats,
