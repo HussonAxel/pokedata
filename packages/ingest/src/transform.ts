@@ -233,10 +233,13 @@ const STEPS: { label: string; sql: string }[] = [
   {
     label: "pokemon_move",
     sql: `insert into pokemon_move (pokemon_id, version_group_id, move_id, method_id, level, "order")
-      select pokemon_id::int, version_group_id::int, move_id::int, pokemon_move_method_id::int,
+      select distinct on (pokemon_id::int, version_group_id::int, move_id::int, pokemon_move_method_id::int)
+        pokemon_id::int, version_group_id::int, move_id::int, pokemon_move_method_id::int,
         coalesce(nullif(level, '')::int, 0), nullif("order", '')::int
       from staging.pokemon_moves
-      where pokemon_id::int < 10000 and move_id::int < 10000 and version_group_id::int < 10000`,
+      where pokemon_id::int < 10000 and move_id::int < 10000 and version_group_id::int < 10000
+      order by pokemon_id::int, version_group_id::int, move_id::int, pokemon_move_method_id::int,
+        nullif(level, '')::int desc nulls last, nullif("order", '')::int nulls last`,
   },
   {
     label: "egg_group",
