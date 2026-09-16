@@ -87,6 +87,11 @@ services:
     profiles: ["tunnel"]
     image: cloudflare/cloudflared:latest
     command: ["tunnel", "--no-autoupdate", "run"]
+    # Le résolveur Docker local peut hériter d'un DNS Tailscale indisponible.
+    # Cloudflare doit toujours pouvoir résoudre ses endpoints de tunnel.
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     environment:
       TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
     depends_on:
