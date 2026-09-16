@@ -297,7 +297,7 @@ const STEPS: { label: string; sql: string }[] = [
   {
     label: "location_area",
     sql: `insert into location_area (id, location_id, identifier)
-      select id::int, location_id::int, identifier from staging.location_areas`,
+      select id::int, location_id::int, coalesce(nullif(identifier, ''), 'area-' || id) from staging.location_areas`,
   },
   {
     label: "encounter",
