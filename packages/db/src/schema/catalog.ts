@@ -217,6 +217,208 @@ export const pokemonStat = pgTable(
   ],
 );
 
+export const ability = pgTable("ability", {
+  id: integer("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  generationId: integer("generation_id").references(() => generation.id),
+});
+
+export const abilityName = pgTable(
+  "ability_name",
+  {
+    abilityId: integer("ability_id")
+      .notNull()
+      .references(() => ability.id),
+    language: text("language").notNull(),
+    name: text("name").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.abilityId, table.language] })],
+);
+
+export const pokemonAbility = pgTable(
+  "pokemon_ability",
+  {
+    pokemonId: integer("pokemon_id")
+      .notNull()
+      .references(() => pokemon.id),
+    abilityId: integer("ability_id")
+      .notNull()
+      .references(() => ability.id),
+    slot: integer("slot").notNull(),
+    isHidden: boolean("is_hidden").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.pokemonId, table.abilityId] })],
+);
+
+export const move = pgTable("move", {
+  id: integer("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  generationId: integer("generation_id").references(() => generation.id),
+  typeId: integer("type_id").references(() => type.id),
+  power: integer("power"),
+  pp: integer("pp"),
+  accuracy: integer("accuracy"),
+  priority: integer("priority"),
+  effectChance: integer("effect_chance"),
+});
+
+export const moveName = pgTable(
+  "move_name",
+  {
+    moveId: integer("move_id")
+      .notNull()
+      .references(() => move.id),
+    language: text("language").notNull(),
+    name: text("name").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.moveId, table.language] })],
+);
+
+export const pokemonMove = pgTable(
+  "pokemon_move",
+  {
+    pokemonId: integer("pokemon_id")
+      .notNull()
+      .references(() => pokemon.id),
+    versionGroupId: integer("version_group_id")
+      .notNull()
+      .references(() => versionGroup.id),
+    moveId: integer("move_id")
+      .notNull()
+      .references(() => move.id),
+    methodId: integer("method_id").notNull(),
+    level: integer("level").notNull(),
+    order: integer("order"),
+  },
+  (table) => [
+    primaryKey({ columns: [table.pokemonId, table.versionGroupId, table.moveId, table.methodId] }),
+  ],
+);
+
+export const eggGroup = pgTable("egg_group", {
+  id: integer("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+});
+
+export const eggGroupName = pgTable(
+  "egg_group_name",
+  {
+    eggGroupId: integer("egg_group_id")
+      .notNull()
+      .references(() => eggGroup.id),
+    language: text("language").notNull(),
+    name: text("name").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.eggGroupId, table.language] })],
+);
+
+export const pokemonEggGroup = pgTable(
+  "pokemon_egg_group",
+  {
+    speciesId: integer("species_id")
+      .notNull()
+      .references(() => species.id),
+    eggGroupId: integer("egg_group_id")
+      .notNull()
+      .references(() => eggGroup.id),
+  },
+  (table) => [primaryKey({ columns: [table.speciesId, table.eggGroupId] })],
+);
+
+export const speciesFlavorText = pgTable(
+  "species_flavor_text",
+  {
+    speciesId: integer("species_id")
+      .notNull()
+      .references(() => species.id),
+    versionId: integer("version_id")
+      .notNull()
+      .references(() => version.id),
+    language: text("language").notNull(),
+    flavorText: text("flavor_text").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.speciesId, table.versionId, table.language] })],
+);
+
+export const pokemonEvolution = pgTable("pokemon_evolution", {
+  id: integer("id").primaryKey(),
+  evolvedSpeciesId: integer("evolved_species_id")
+    .notNull()
+    .references(() => species.id),
+  triggerId: integer("trigger_id"),
+  versionGroupId: integer("version_group_id").references(() => versionGroup.id),
+  minimumLevel: integer("minimum_level"),
+  minimumHappiness: integer("minimum_happiness"),
+  minimumBeauty: integer("minimum_beauty"),
+  minimumAffection: integer("minimum_affection"),
+  timeOfDay: text("time_of_day"),
+  locationId: integer("location_id"),
+  triggerItemId: integer("trigger_item_id"),
+  heldItemId: integer("held_item_id"),
+  knownMoveId: integer("known_move_id"),
+  knownMoveTypeId: integer("known_move_type_id"),
+  tradeSpeciesId: integer("trade_species_id"),
+  relativePhysicalStats: integer("relative_physical_stats"),
+  needsOverworldRain: boolean("needs_overworld_rain").notNull(),
+  turnUpsideDown: boolean("turn_upside_down").notNull(),
+});
+
+export const evolutionTriggerName = pgTable(
+  "evolution_trigger_name",
+  {
+    triggerId: integer("trigger_id").notNull(),
+    language: text("language").notNull(),
+    name: text("name").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.triggerId, table.language] })],
+);
+
+export const location = pgTable("location", {
+  id: integer("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+});
+
+export const locationName = pgTable(
+  "location_name",
+  {
+    locationId: integer("location_id")
+      .notNull()
+      .references(() => location.id),
+    language: text("language").notNull(),
+    name: text("name").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.locationId, table.language] })],
+);
+
+export const locationArea = pgTable("location_area", {
+  id: integer("id").primaryKey(),
+  locationId: integer("location_id")
+    .notNull()
+    .references(() => location.id),
+  identifier: text("identifier").notNull(),
+});
+
+export const encounter = pgTable(
+  "encounter",
+  {
+    id: integer("id").primaryKey(),
+    pokemonId: integer("pokemon_id")
+      .notNull()
+      .references(() => pokemon.id),
+    locationAreaId: integer("location_area_id")
+      .notNull()
+      .references(() => locationArea.id),
+    versionId: integer("version_id")
+      .notNull()
+      .references(() => version.id),
+    minLevel: integer("min_level").notNull(),
+    maxLevel: integer("max_level").notNull(),
+    methodId: integer("method_id"),
+    rarity: integer("rarity"),
+  },
+  (table) => [index("encounter_pokemon_idx").on(table.pokemonId)],
+);
+
 export const speciesRelations = relations(species, ({ one, many }) => ({
   generation: one(generation, {
     fields: [species.generationId],

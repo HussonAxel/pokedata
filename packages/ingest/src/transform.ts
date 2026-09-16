@@ -13,6 +13,22 @@ const LANGUAGES = "(5, 'fr'), (9, 'en')";
  * reconstruction : le catalogue est dérivé, jamais édité à la main.
  */
 const DOMAIN_TABLES = [
+  "encounter",
+  "location_area",
+  "location_name",
+  "location",
+  "pokemon_evolution",
+  "evolution_trigger_name",
+  "species_flavor_text",
+  "pokemon_egg_group",
+  "egg_group_name",
+  "egg_group",
+  "pokemon_move",
+  "move_name",
+  "move",
+  "pokemon_ability",
+  "ability_name",
+  "ability",
   "pokemon_stat",
   "pokemon_type",
   "pokemon_form",
@@ -180,6 +196,113 @@ const STEPS: { label: string; sql: string }[] = [
              nullif("order", '')::int
         from staging.pokemon
     `,
+  },
+  {
+    label: "ability",
+    sql: `insert into ability (id, identifier, generation_id)
+      select id::int, identifier, nullif(generation_id, '')::int from staging.abilities where id::int < 10000`,
+  },
+  {
+    label: "ability_name",
+    sql: `insert into ability_name (ability_id, language, name)
+      select n.ability_id::int, l.code, n.name from staging.ability_names n
+      join (values ${LANGUAGES}) l(id, code) on l.id = n.local_language_id::int
+      where n.ability_id::int < 10000`,
+  },
+  {
+    label: "pokemon_ability",
+    sql: `insert into pokemon_ability (pokemon_id, ability_id, slot, is_hidden)
+      select pokemon_id::int, ability_id::int, slot::int, is_hidden = '1' from staging.pokemon_abilities
+      where pokemon_id::int < 10000 and ability_id::int < 10000`,
+  },
+  {
+    label: "move",
+    sql: `insert into move (id, identifier, generation_id, type_id, power, pp, accuracy, priority, effect_chance)
+      select id::int, identifier, nullif(generation_id, '')::int, nullif(type_id, '')::int,
+        nullif(power, '')::int, nullif(pp, '')::int, nullif(accuracy, '')::int,
+        nullif(priority, '')::int, nullif(effect_chance, '')::int
+      from staging.moves where id::int < 10000 and type_id::int < 10000`,
+  },
+  {
+    label: "move_name",
+    sql: `insert into move_name (move_id, language, name)
+      select n.move_id::int, l.code, n.name from staging.move_names n
+      join (values ${LANGUAGES}) l(id, code) on l.id = n.local_language_id::int
+      where n.move_id::int < 10000`,
+  },
+  {
+    label: "pokemon_move",
+    sql: `insert into pokemon_move (pokemon_id, version_group_id, move_id, method_id, level, "order")
+      select pokemon_id::int, version_group_id::int, move_id::int, pokemon_move_method_id::int,
+        coalesce(nullif(level, '')::int, 0), nullif("order", '')::int
+      from staging.pokemon_moves
+      where pokemon_id::int < 10000 and move_id::int < 10000 and version_group_id::int < 10000`,
+  },
+  {
+    label: "egg_group",
+    sql: `insert into egg_group (id, identifier) select id::int, identifier from staging.egg_groups`,
+  },
+  {
+    label: "egg_group_name",
+    sql: `insert into egg_group_name (egg_group_id, language, name)
+      select p.egg_group_id::int, l.code, p.name from staging.egg_group_prose p
+      join (values ${LANGUAGES}) l(id, code) on l.id = p.local_language_id::int`,
+  },
+  {
+    label: "pokemon_egg_group",
+    sql: `insert into pokemon_egg_group (species_id, egg_group_id)
+      select species_id::int, egg_group_id::int from staging.pokemon_egg_groups`,
+  },
+  {
+    label: "species_flavor_text",
+    sql: `insert into species_flavor_text (species_id, version_id, language, flavor_text)
+      select distinct on (f.species_id, f.version_id, l.code) f.species_id::int, f.version_id::int, l.code, f.flavor_text
+      from staging.pokemon_species_flavor_text f join (values (5, 'fr'), (9, 'en')) l(id, code)
+        on l.id = f.language_id::int where f.species_id::int < 10000 order by f.species_id, f.version_id, l.code`,
+  },
+  {
+    label: "evolution_trigger_name",
+    sql: `insert into evolution_trigger_name (trigger_id, language, name)
+      select p.evolution_trigger_id::int, l.code, p.name from staging.evolution_trigger_prose p
+      join (values ${LANGUAGES}) l(id, code) on l.id = p.local_language_id::int`,
+  },
+  {
+    label: "pokemon_evolution",
+    sql: `insert into pokemon_evolution (
+      id, evolved_species_id, trigger_id, version_group_id, minimum_level, minimum_happiness,
+      minimum_beauty, minimum_affection, time_of_day, location_id, trigger_item_id, held_item_id,
+      known_move_id, known_move_type_id, trade_species_id, relative_physical_stats,
+      needs_overworld_rain, turn_upside_down
+    ) select id::int, evolved_species_id::int, nullif(evolution_trigger_id, '')::int,
+      nullif(version_group_id, '')::int, nullif(minimum_level, '')::int, nullif(minimum_happiness, '')::int,
+      nullif(minimum_beauty, '')::int, nullif(minimum_affection, '')::int, nullif(time_of_day, ''),
+      nullif(location_id, '')::int, nullif(trigger_item_id, '')::int, nullif(held_item_id, '')::int,
+      nullif(known_move_id, '')::int, nullif(known_move_type_id, '')::int, nullif(trade_species_id, '')::int,
+      nullif(relative_physical_stats, '')::int, needs_overworld_rain = '1', turn_upside_down = '1'
+      from staging.pokemon_evolution where evolved_species_id::int < 10000`,
+  },
+  {
+    label: "location",
+    sql: `insert into location (id, identifier) select id::int, identifier from staging.locations`,
+  },
+  {
+    label: "location_name",
+    sql: `insert into location_name (location_id, language, name)
+      select n.location_id::int, l.code, n.name from staging.location_names n
+      join (values ${LANGUAGES}) l(id, code) on l.id = n.local_language_id::int`,
+  },
+  {
+    label: "location_area",
+    sql: `insert into location_area (id, location_id, identifier)
+      select id::int, location_id::int, identifier from staging.location_areas`,
+  },
+  {
+    label: "encounter",
+    sql: `insert into encounter (id, pokemon_id, location_area_id, version_id, min_level, max_level, method_id, rarity)
+      select e.id::int, e.pokemon_id::int, e.location_area_id::int, e.version_id::int,
+        e.min_level::int, e.max_level::int, nullif(s.encounter_method_id, '')::int, nullif(s.rarity, '')::int
+      from staging.encounters e left join staging.encounter_slots s on s.id = e.encounter_slot_id
+      where e.pokemon_id::int < 10000`,
   },
   {
     label: "pokemon_form",

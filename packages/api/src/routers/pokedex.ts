@@ -1,16 +1,33 @@
 import {
   generation,
+  ability,
+  abilityName,
+  eggGroup,
+  eggGroupName,
+  encounter,
+  evolutionTriggerName,
+  location,
+  locationArea,
+  locationName,
+  move,
+  moveName,
+  pokemonAbility,
+  pokemonEggGroup,
+  pokemonEvolution,
+  pokemonMove,
   pokemon,
   pokemonForm,
   pokemonStat,
   pokemonType,
   species,
   speciesName,
+  speciesFlavorText,
   stat,
   type,
   typeName,
   typeEfficacy,
   versionGroup,
+  version,
 } from "@pokedata/db/schema/catalog";
 import { and, asc, eq, isNull, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -126,144 +143,266 @@ const detail = publicProcedure
       return null;
     }
 
-    const [types, stats, forms, varieties, evolutionFamily, efficacy, availableGenerations, names] =
-      await Promise.all([
-        context.db
-          .select({
-            id: type.id,
-            slot: pokemonType.slot,
-            identifier: type.identifier,
-            name: typeName.name,
-          })
-          .from(pokemonType)
-          .innerJoin(type, eq(type.id, pokemonType.typeId))
-          .innerJoin(
-            typeName,
-            and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)),
-          )
-          .where(
-            and(
-              eq(pokemonType.pokemonId, entry.id),
-              eq(pokemonType.generationId, input.generationId),
+    const [
+      types,
+      stats,
+      forms,
+      varieties,
+      evolutionFamily,
+      efficacy,
+      availableGenerations,
+      names,
+      descriptions,
+      abilities,
+      moves,
+      eggGroups,
+      evolutionConditions,
+      encounters,
+    ] = await Promise.all([
+      context.db
+        .select({
+          id: type.id,
+          slot: pokemonType.slot,
+          identifier: type.identifier,
+          name: typeName.name,
+        })
+        .from(pokemonType)
+        .innerJoin(type, eq(type.id, pokemonType.typeId))
+        .innerJoin(typeName, and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)))
+        .where(
+          and(
+            eq(pokemonType.pokemonId, entry.id),
+            eq(pokemonType.generationId, input.generationId),
+          ),
+        )
+        .orderBy(asc(pokemonType.slot)),
+      context.db
+        .select({
+          identifier: stat.identifier,
+          baseStat: pokemonStat.baseStat,
+          effort: pokemonStat.effort,
+        })
+        .from(pokemonStat)
+        .innerJoin(stat, eq(stat.id, pokemonStat.statId))
+        .where(
+          and(
+            eq(pokemonStat.pokemonId, entry.id),
+            eq(pokemonStat.generationId, input.generationId),
+          ),
+        )
+        .orderBy(asc(pokemonStat.statId)),
+      context.db
+        .select({
+          id: pokemonForm.id,
+          identifier: pokemonForm.identifier,
+          formIdentifier: pokemonForm.formIdentifier,
+          isDefault: pokemonForm.isDefault,
+          isMega: pokemonForm.isMega,
+          isBattleOnly: pokemonForm.isBattleOnly,
+          introducedIn: versionGroup.generationId,
+        })
+        .from(pokemonForm)
+        .leftJoin(versionGroup, eq(versionGroup.id, pokemonForm.introducedInVersionGroupId))
+        .where(
+          and(
+            eq(pokemonForm.pokemonId, entry.id),
+            or(
+              isNull(versionGroup.generationId),
+              lte(versionGroup.generationId, input.generationId),
             ),
-          )
-          .orderBy(asc(pokemonType.slot)),
-        context.db
-          .select({
-            identifier: stat.identifier,
-            baseStat: pokemonStat.baseStat,
-            effort: pokemonStat.effort,
-          })
-          .from(pokemonStat)
-          .innerJoin(stat, eq(stat.id, pokemonStat.statId))
-          .where(
-            and(
-              eq(pokemonStat.pokemonId, entry.id),
-              eq(pokemonStat.generationId, input.generationId),
-            ),
-          )
-          .orderBy(asc(pokemonStat.statId)),
-        context.db
-          .select({
-            id: pokemonForm.id,
-            identifier: pokemonForm.identifier,
-            formIdentifier: pokemonForm.formIdentifier,
-            isDefault: pokemonForm.isDefault,
-            isMega: pokemonForm.isMega,
-            isBattleOnly: pokemonForm.isBattleOnly,
-            introducedIn: versionGroup.generationId,
-          })
-          .from(pokemonForm)
-          .leftJoin(versionGroup, eq(versionGroup.id, pokemonForm.introducedInVersionGroupId))
-          .where(
-            and(
-              eq(pokemonForm.pokemonId, entry.id),
-              or(
-                isNull(versionGroup.generationId),
-                lte(versionGroup.generationId, input.generationId),
-              ),
-            ),
-          )
-          .orderBy(asc(pokemonForm.formOrder)),
-        context.db
-          .select({ id: pokemon.id, identifier: pokemon.identifier, isDefault: pokemon.isDefault })
-          .from(pokemon)
-          .innerJoin(
-            pokemonType,
-            and(
-              eq(pokemonType.pokemonId, pokemon.id),
-              eq(pokemonType.generationId, input.generationId),
-              eq(pokemonType.slot, 1),
-            ),
-          )
-          .where(eq(pokemon.speciesId, entry.speciesId))
-          .orderBy(asc(pokemon.order), asc(pokemon.id)),
-        context.db
-          .select({
-            speciesId: species.id,
-            identifier: pokemon.identifier,
-            name: speciesName.name,
-            evolvesFromSpeciesId: species.evolvesFromSpeciesId,
-            introducedIn: species.generationId,
-          })
-          .from(species)
-          .innerJoin(
-            speciesName,
-            and(eq(speciesName.speciesId, species.id), eq(speciesName.language, input.locale)),
-          )
-          .innerJoin(pokemon, and(eq(pokemon.speciesId, species.id), eq(pokemon.isDefault, true)))
-          .innerJoin(
-            pokemonType,
-            and(
-              eq(pokemonType.pokemonId, pokemon.id),
-              eq(pokemonType.generationId, input.generationId),
-              eq(pokemonType.slot, 1),
-            ),
-          )
-          .where(
-            entry.evolutionChainId === null
-              ? eq(species.id, entry.speciesId)
-              : eq(species.evolutionChainId, entry.evolutionChainId),
-          )
-          .orderBy(asc(species.order), asc(species.id)),
-        context.db
-          .select({
-            identifier: type.identifier,
-            name: typeName.name,
-            targetTypeId: typeEfficacy.targetTypeId,
-            factor: typeEfficacy.factor,
-          })
-          .from(typeEfficacy)
-          .innerJoin(type, eq(type.id, typeEfficacy.damageTypeId))
-          .innerJoin(
-            typeName,
-            and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)),
-          )
-          .innerJoin(
-            pokemonType,
-            and(
-              eq(pokemonType.typeId, typeEfficacy.targetTypeId),
-              eq(pokemonType.pokemonId, entry.id),
-              eq(pokemonType.generationId, input.generationId),
-            ),
-          )
-          .where(eq(typeEfficacy.generationId, input.generationId))
-          .orderBy(asc(type.id)),
-        context.db
-          .select({ id: pokemonType.generationId })
-          .from(pokemonType)
-          .where(and(eq(pokemonType.pokemonId, entry.id), eq(pokemonType.slot, 1)))
-          .orderBy(asc(pokemonType.generationId)),
-        context.db
-          .select({
-            language: speciesName.language,
-            name: speciesName.name,
-            genus: speciesName.genus,
-          })
-          .from(speciesName)
-          .where(eq(speciesName.speciesId, entry.speciesId))
-          .orderBy(asc(speciesName.language)),
-      ]);
+          ),
+        )
+        .orderBy(asc(pokemonForm.formOrder)),
+      context.db
+        .select({ id: pokemon.id, identifier: pokemon.identifier, isDefault: pokemon.isDefault })
+        .from(pokemon)
+        .innerJoin(
+          pokemonType,
+          and(
+            eq(pokemonType.pokemonId, pokemon.id),
+            eq(pokemonType.generationId, input.generationId),
+            eq(pokemonType.slot, 1),
+          ),
+        )
+        .where(eq(pokemon.speciesId, entry.speciesId))
+        .orderBy(asc(pokemon.order), asc(pokemon.id)),
+      context.db
+        .select({
+          speciesId: species.id,
+          identifier: pokemon.identifier,
+          name: speciesName.name,
+          evolvesFromSpeciesId: species.evolvesFromSpeciesId,
+          introducedIn: species.generationId,
+        })
+        .from(species)
+        .innerJoin(
+          speciesName,
+          and(eq(speciesName.speciesId, species.id), eq(speciesName.language, input.locale)),
+        )
+        .innerJoin(pokemon, and(eq(pokemon.speciesId, species.id), eq(pokemon.isDefault, true)))
+        .innerJoin(
+          pokemonType,
+          and(
+            eq(pokemonType.pokemonId, pokemon.id),
+            eq(pokemonType.generationId, input.generationId),
+            eq(pokemonType.slot, 1),
+          ),
+        )
+        .where(
+          entry.evolutionChainId === null
+            ? eq(species.id, entry.speciesId)
+            : eq(species.evolutionChainId, entry.evolutionChainId),
+        )
+        .orderBy(asc(species.order), asc(species.id)),
+      context.db
+        .select({
+          identifier: type.identifier,
+          name: typeName.name,
+          targetTypeId: typeEfficacy.targetTypeId,
+          factor: typeEfficacy.factor,
+        })
+        .from(typeEfficacy)
+        .innerJoin(type, eq(type.id, typeEfficacy.damageTypeId))
+        .innerJoin(typeName, and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)))
+        .innerJoin(
+          pokemonType,
+          and(
+            eq(pokemonType.typeId, typeEfficacy.targetTypeId),
+            eq(pokemonType.pokemonId, entry.id),
+            eq(pokemonType.generationId, input.generationId),
+          ),
+        )
+        .where(eq(typeEfficacy.generationId, input.generationId))
+        .orderBy(asc(type.id)),
+      context.db
+        .select({ id: pokemonType.generationId })
+        .from(pokemonType)
+        .where(and(eq(pokemonType.pokemonId, entry.id), eq(pokemonType.slot, 1)))
+        .orderBy(asc(pokemonType.generationId)),
+      context.db
+        .select({
+          language: speciesName.language,
+          name: speciesName.name,
+          genus: speciesName.genus,
+        })
+        .from(speciesName)
+        .where(eq(speciesName.speciesId, entry.speciesId))
+        .orderBy(asc(speciesName.language)),
+      context.db
+        .select({
+          versionId: speciesFlavorText.versionId,
+          flavorText: speciesFlavorText.flavorText,
+        })
+        .from(speciesFlavorText)
+        .where(
+          and(
+            eq(speciesFlavorText.speciesId, entry.speciesId),
+            eq(speciesFlavorText.language, input.locale),
+          ),
+        )
+        .orderBy(asc(speciesFlavorText.versionId)),
+      context.db
+        .select({
+          id: ability.id,
+          identifier: ability.identifier,
+          name: abilityName.name,
+          slot: pokemonAbility.slot,
+          isHidden: pokemonAbility.isHidden,
+        })
+        .from(pokemonAbility)
+        .innerJoin(ability, eq(ability.id, pokemonAbility.abilityId))
+        .innerJoin(
+          abilityName,
+          and(eq(abilityName.abilityId, ability.id), eq(abilityName.language, input.locale)),
+        )
+        .where(eq(pokemonAbility.pokemonId, entry.id))
+        .orderBy(asc(pokemonAbility.slot)),
+      context.db
+        .select({
+          id: move.id,
+          identifier: move.identifier,
+          name: moveName.name,
+          typeId: move.typeId,
+          power: move.power,
+          pp: move.pp,
+          accuracy: move.accuracy,
+          priority: move.priority,
+          methodId: pokemonMove.methodId,
+          level: pokemonMove.level,
+          versionGroupId: pokemonMove.versionGroupId,
+        })
+        .from(pokemonMove)
+        .innerJoin(move, eq(move.id, pokemonMove.moveId))
+        .innerJoin(moveName, and(eq(moveName.moveId, move.id), eq(moveName.language, input.locale)))
+        .innerJoin(
+          versionGroup,
+          and(
+            eq(versionGroup.id, pokemonMove.versionGroupId),
+            eq(versionGroup.generationId, input.generationId),
+          ),
+        )
+        .where(eq(pokemonMove.pokemonId, entry.id))
+        .orderBy(asc(pokemonMove.methodId), asc(pokemonMove.level), asc(pokemonMove.order)),
+      context.db
+        .select({ id: eggGroup.id, identifier: eggGroup.identifier, name: eggGroupName.name })
+        .from(pokemonEggGroup)
+        .innerJoin(eggGroup, eq(eggGroup.id, pokemonEggGroup.eggGroupId))
+        .innerJoin(
+          eggGroupName,
+          and(eq(eggGroupName.eggGroupId, eggGroup.id), eq(eggGroupName.language, input.locale)),
+        )
+        .where(eq(pokemonEggGroup.speciesId, entry.speciesId))
+        .orderBy(asc(eggGroup.id)),
+      context.db
+        .select({
+          evolvedSpeciesId: pokemonEvolution.evolvedSpeciesId,
+          triggerId: pokemonEvolution.triggerId,
+          triggerName: evolutionTriggerName.name,
+          minimumLevel: pokemonEvolution.minimumLevel,
+          minimumHappiness: pokemonEvolution.minimumHappiness,
+          minimumBeauty: pokemonEvolution.minimumBeauty,
+          minimumAffection: pokemonEvolution.minimumAffection,
+          timeOfDay: pokemonEvolution.timeOfDay,
+          needsOverworldRain: pokemonEvolution.needsOverworldRain,
+          turnUpsideDown: pokemonEvolution.turnUpsideDown,
+        })
+        .from(pokemonEvolution)
+        .leftJoin(
+          evolutionTriggerName,
+          and(
+            eq(evolutionTriggerName.triggerId, pokemonEvolution.triggerId),
+            eq(evolutionTriggerName.language, input.locale),
+          ),
+        )
+        .where(eq(pokemonEvolution.evolvedSpeciesId, entry.speciesId)),
+      context.db
+        .select({
+          locationId: location.id,
+          location: locationName.name,
+          area: locationArea.identifier,
+          versionId: encounter.versionId,
+          minLevel: encounter.minLevel,
+          maxLevel: encounter.maxLevel,
+          rarity: encounter.rarity,
+        })
+        .from(encounter)
+        .innerJoin(locationArea, eq(locationArea.id, encounter.locationAreaId))
+        .innerJoin(location, eq(location.id, locationArea.locationId))
+        .leftJoin(
+          locationName,
+          and(eq(locationName.locationId, location.id), eq(locationName.language, input.locale)),
+        )
+        .innerJoin(version, eq(version.id, encounter.versionId))
+        .innerJoin(
+          versionGroup,
+          and(
+            eq(versionGroup.id, version.versionGroupId),
+            eq(versionGroup.generationId, input.generationId),
+          ),
+        )
+        .where(eq(encounter.pokemonId, entry.id))
+        .orderBy(asc(location.id), asc(encounter.minLevel)),
+    ]);
 
     // Une variété sans typage à cette génération n'y existait pas encore.
     if (types.length === 0) {
@@ -287,6 +426,12 @@ const detail = publicProcedure
       matchups: [...matchups.values()],
       availableGenerations,
       names,
+      descriptions,
+      abilities,
+      moves,
+      eggGroups,
+      evolutionConditions,
+      encounters,
       generationId: input.generationId,
       types,
       stats,

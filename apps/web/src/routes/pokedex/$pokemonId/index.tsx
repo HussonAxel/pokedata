@@ -8,11 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@pokedata/ui/components/card";
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@pokedata/ui/components/empty";
 import {
   STAT_LABELS,
   formatForm,
   formatGender,
+  formatEvolutionCondition,
   formatMeasurement,
   formatNumber,
 } from "@/features/pokedex/detail-format";
@@ -58,6 +58,13 @@ const SECTIONS = [
   ["formes", "Formes"],
   ["entrainement", "Entraînement"],
   ["reproduction", "Reproduction"],
+  ["reproduction-groupes", "Groupes d’œufs"],
+  ["conditions-evolution", "Conditions d’évolution"],
+  ["descriptions", "Descriptions"],
+  ["talents", "Talents"],
+  ["attaques", "Attaques"],
+  ["rencontres", "Rencontres"],
+  ["medias", "Médias"],
 ] as const;
 
 function DetailSection({
@@ -416,15 +423,191 @@ function Page() {
         </DetailSection>
       </div>
 
-      <Empty className="border">
-        <EmptyHeader>
-          <EmptyTitle>Informations complémentaires à venir</EmptyTitle>
-          <EmptyDescription>
-            Les descriptions du Pokédex, talents, attaques, groupes d’œufs, conditions d’évolution,
-            lieux de rencontre et médias ne sont pas encore disponibles sur cette fiche.
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <DetailSection
+        id="descriptions"
+        title="Descriptions du Pokédex"
+        description="Textes officiels par version, nettoyés pour une lecture correcte."
+      >
+        {data.descriptions.length ? (
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {data.descriptions.map((description) => (
+              <li key={description.versionId} className="rounded-lg border p-4">
+                {description.flavorText}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted-foreground">Aucune description française pour cette espèce.</p>
+        )}
+      </DetailSection>
+
+      <DetailSection
+        id="talents"
+        title="Talents"
+        description="Les talents cachés sont distingués des talents classiques."
+      >
+        {data.abilities.length ? (
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {data.abilities.map((ability) => (
+              <li key={ability.id} className="flex flex-col gap-1 rounded-lg border p-4">
+                <span className="font-medium">{ability.name}</span>
+                <span className="text-sm text-muted-foreground">
+                  {ability.isHidden ? "Talent caché" : `Talent ${ability.slot}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted-foreground">Aucun talent renseigné.</p>
+        )}
+      </DetailSection>
+
+      <DetailSection
+        id="attaques"
+        title="Attaques apprises"
+        description="Attaques disponibles dans les groupes de versions de la génération consultée. Le niveau 0 correspond à une attaque apprise autrement qu’en montant de niveau."
+      >
+        {data.moves.length ? (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[40rem] text-left text-sm">
+              <thead>
+                <tr className="border-b text-muted-foreground">
+                  <th className="px-2 py-2 font-medium">Attaque</th>
+                  <th className="px-2 py-2 font-medium">Méthode</th>
+                  <th className="px-2 py-2 font-medium">Niveau</th>
+                  <th className="px-2 py-2 font-medium">Puissance</th>
+                  <th className="px-2 py-2 font-medium">PP</th>
+                  <th className="px-2 py-2 font-medium">Précision</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.moves.map((move) => (
+                  <tr
+                    key={`${move.id}-${move.versionGroupId}-${move.methodId}`}
+                    className="border-b"
+                  >
+                    <td className="px-2 py-2 font-medium">{move.name}</td>
+                    <td className="px-2 py-2 text-muted-foreground">Méthode {move.methodId}</td>
+                    <td className="px-2 py-2 tabular-nums">{move.level || "—"}</td>
+                    <td className="px-2 py-2 tabular-nums">{move.power ?? "—"}</td>
+                    <td className="px-2 py-2 tabular-nums">{move.pp ?? "—"}</td>
+                    <td className="px-2 py-2 tabular-nums">{move.accuracy ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-muted-foreground">Aucune attaque renseignée pour cette génération.</p>
+        )}
+      </DetailSection>
+
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <DetailSection
+          id="reproduction-groupes"
+          title="Groupes d’œufs"
+          description="Groupes utilisés pour déterminer la compatibilité à la pension."
+        >
+          {data.eggGroups.length ? (
+            <ul className="flex flex-wrap gap-2">
+              {data.eggGroups.map((group) => (
+                <li key={group.id} className="rounded-lg border px-3 py-2">
+                  {group.name}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground">Aucun groupe d’œufs renseigné.</p>
+          )}
+        </DetailSection>
+        <DetailSection id="conditions-evolution" title="Conditions d’évolution">
+          {data.evolutionConditions.length ? (
+            <ul className="flex flex-col gap-2">
+              {data.evolutionConditions.map((condition) => (
+                <li
+                  key={`${condition.evolvedSpeciesId}-${condition.triggerId}`}
+                  className="rounded-lg border p-3"
+                >
+                  {formatEvolutionCondition(condition)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground">
+              Aucune condition d’évolution directe renseignée.
+            </p>
+          )}
+        </DetailSection>
+      </div>
+
+      <DetailSection
+        id="rencontres"
+        title="Lieux de rencontre"
+        description="Lieux et niveaux connus dans les versions de la génération consultée."
+      >
+        {data.encounters.length ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {data.encounters.map((encounter, index) => (
+              <div
+                key={`${encounter.locationId}-${encounter.versionId}-${index}`}
+                className="rounded-lg border p-4"
+              >
+                <p className="font-medium">{encounter.location ?? "Lieu inconnu"}</p>
+                <p className="text-sm text-muted-foreground">
+                  {encounter.area.replaceAll("-", " ")} · niveaux {encounter.minLevel}–
+                  {encounter.maxLevel}
+                  {encounter.rarity !== null ? ` · ${encounter.rarity} %` : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground">
+            Aucun lieu de rencontre renseigné pour cette génération.
+          </p>
+        )}
+      </DetailSection>
+
+      <DetailSection
+        id="medias"
+        title="Médias"
+        description="Sprites officiels PokeAPI/Sprites. Les illustrations et les cris seront ajoutés avec le futur pipeline média."
+      >
+        <div className="grid gap-4 sm:grid-cols-3">
+          <figure className="flex flex-col items-center gap-2 rounded-lg border p-4">
+            <img
+              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${data.id}.png`}
+              alt={`Sprite de ${data.name}`}
+              width="160"
+              height="160"
+              loading="lazy"
+            />
+            <figcaption className="text-sm text-muted-foreground">Sprite classique</figcaption>
+          </figure>
+          <figure className="flex flex-col items-center gap-2 rounded-lg border p-4">
+            <img
+              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${data.id}.png`}
+              alt={`Illustration officielle de ${data.name}`}
+              width="240"
+              height="240"
+              loading="lazy"
+            />
+            <figcaption className="text-sm text-muted-foreground">
+              Illustration officielle
+            </figcaption>
+          </figure>
+          <figure className="flex flex-col items-center gap-2 rounded-lg border p-4">
+            <img
+              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${data.id}.png`}
+              alt={`Sprite chromatique de ${data.name}`}
+              width="160"
+              height="160"
+              loading="lazy"
+            />
+            <figcaption className="text-sm text-muted-foreground">Version chromatique</figcaption>
+          </figure>
+        </div>
+      </DetailSection>
     </main>
   );
 }
