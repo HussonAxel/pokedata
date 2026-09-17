@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
   Card,
   CardContent,
@@ -236,8 +236,12 @@ function Page() {
                   className="col-span-2 h-2 overflow-hidden rounded-full bg-muted"
                 >
                   <div
-                    className="h-full rounded-full bg-primary"
-                    style={{ width: `${Math.min((line.baseStat / 255) * 100, 100)}%` }}
+                    className="h-full w-(--stat-width) rounded-full bg-primary"
+                    style={
+                      {
+                        "--stat-width": `${Math.min((line.baseStat / 255) * 100, 100)}%`,
+                      } as CSSProperties
+                    }
                   />
                 </dd>
               </div>

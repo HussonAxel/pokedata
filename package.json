@@ -11,6 +11,7 @@
     "build": "vp run -r build",
     "check-types": "vp run -r check-types",
     "check": "vp check && vp run -r check-types",
+    "test": "vp test run --environment jsdom",
     "lint": "vp lint",
     "format": "vp fmt",
     "staged": "vp staged",
@@ -38,14 +39,15 @@
   },
   "devDependencies": {
     "@pokedata/config": "workspace:*",
+    "@shadcn/lint": "^0.1.0",
     "@types/node": "catalog:",
     "lefthook": "^2.1.12",
     "rolldown": "1.2.6",
     "typescript": "catalog:",
-    "vite-plus": "0.3.0"
+    "vite-plus": "0.3.2"
   },
   "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@0.3.0"
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.3.2"
   },
   "packageManager": "pnpm@11.9.0"
 }

@@ -19,6 +19,7 @@
     "class-variance-authority": "^0.7.1",
     "cn": "^0.2.4",
     "lucide-react": "catalog:",
+    "motion": "^13.3.0",
     "next-themes": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
@@ -29,9 +30,12 @@
   "devDependencies": {
     "@pokedata/config": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/react": "16.3.3",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "jsdom": "30.0.1",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "4.1.11"
   }
 }

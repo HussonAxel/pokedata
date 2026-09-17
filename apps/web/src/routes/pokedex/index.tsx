@@ -133,7 +133,7 @@ function Page() {
               // Les cartes hors écran ne sont pas mises en page tant qu'elles ne
               // sont pas visibles : la grille complète reste fluide sans
               // virtualisation ni dépendance supplémentaire.
-              style={{ contentVisibility: "auto", containIntrinsicSize: "auto 92px" }}
+              className="content-visibility-auto contain-intrinsic-size-pokedex"
             >
               <Link
                 to="/pokedex/$pokemonId"
