@@ -44,7 +44,8 @@
     "lefthook": "^2.1.12",
     "rolldown": "1.2.6",
     "typescript": "catalog:",
-    "vite-plus": "0.3.2"
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   },
   "overrides": {
     "vite": "npm:@voidzero-dev/vite-plus-core@0.3.2"

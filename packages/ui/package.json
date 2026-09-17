@@ -36,6 +36,6 @@
     "jsdom": "30.0.1",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
-    "vitest": "4.1.11"
+    "vitest": "catalog:"
   }
 }

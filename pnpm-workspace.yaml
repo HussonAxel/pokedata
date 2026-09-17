@@ -23,3 +23,16 @@ catalog:
   better-auth: 1.7.1
   "@types/react": ^19.2.17
   "@types/react-dom": ^19.2.3
+  vite: npm:@voidzero-dev/vite-plus-core@0.3.2
+  vitest: 4.1.11
+  vite-plus: 0.3.2
+overrides:
+  vite@*: "catalog:"
+  vitest@*: "catalog:"
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: "*"
+    vitest: "*"

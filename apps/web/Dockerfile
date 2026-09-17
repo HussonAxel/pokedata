@@ -14,6 +14,7 @@ ENV SKIP_ENV_VALIDATION=
 ENV BETTER_AUTH_SECRET=
 
 FROM node:24-slim AS runner
+RUN npm install -g pnpm@11
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app /app

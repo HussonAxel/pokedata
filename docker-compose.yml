@@ -7,14 +7,14 @@ services:
       dockerfile: apps/web/Dockerfile
     init: true
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     env_file:
       - path: apps/web/.env
         required: false
     environment:
       BETTER_AUTH_URL: http://localhost:3001
       CORS_ORIGIN: http://localhost:3001
-      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/pokedata
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant}@postgres:5432/pokedata
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,9 +38,9 @@ services:
     environment:
       POSTGRES_DB: pokedata
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant}
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - pokedata_postgres_data:/var/lib/postgresql
     healthcheck:
