@@ -5,6 +5,7 @@ import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanst
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createMiddleware } from "@tanstack/react-start";
 import { evlogErrorHandler } from "evlog/nitro/v3";
+import { ThemeProvider } from "next-themes";
 
 import FloatingDockMenu from "@pokedata/ui/components/ui/FloatingDockMenu";
 
@@ -38,6 +39,19 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
     ],
     links: [
       {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap",
+      },
+      {
         rel: "stylesheet",
         href: appCss,
       },
@@ -49,21 +63,23 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
   return (
-    <html lang="fr" className="dark">
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
-        <div className="grid min-h-svh grid-rows-[auto_1fr]">
-          <Header />
-          <Outlet />
-          <FloatingDockMenu />
-        </div>
-        <Toaster richColors />
-        {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-left" />}
-        {import.meta.env.DEV && (
-          <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
-        )}
+        <ThemeProvider attribute="class" defaultTheme="" enableSystem>
+          <div className="grid min-h-svh grid-rows-[auto_1fr]">
+            <Header />
+            <Outlet />
+            <FloatingDockMenu />
+          </div>
+          <Toaster richColors />
+          {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-left" />}
+          {import.meta.env.DEV && (
+            <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
+          )}
+        </ThemeProvider>
         <Scripts />
       </body>
     </html>
