@@ -14,6 +14,7 @@ import {
   formatGender,
   formatEvolutionCondition,
   formatMeasurement,
+  formatMoveMethod,
   formatNumber,
 } from "@/features/pokedex/detail-format";
 import { z } from "zod";
@@ -494,7 +495,9 @@ function Page() {
                     className="border-b"
                   >
                     <td className="px-2 py-2 font-medium">{move.name}</td>
-                    <td className="px-2 py-2 text-muted-foreground">Méthode {move.methodId}</td>
+                    <td className="px-2 py-2 text-muted-foreground">
+                      {formatMoveMethod(move.methodId)}
+                    </td>
                     <td className="px-2 py-2 tabular-nums">{move.level || "—"}</td>
                     <td className="px-2 py-2 tabular-nums">{move.power ?? "—"}</td>
                     <td className="px-2 py-2 tabular-nums">{move.pp ?? "—"}</td>

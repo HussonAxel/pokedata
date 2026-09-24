@@ -8,6 +8,26 @@ export const STAT_LABELS: Record<string, string> = {
   special: "Spécial",
 };
 
+// Identifiants de pokemon_move_methods dans le catalogue PokéAPI.
+const MOVE_METHOD_LABELS: Record<number, string> = {
+  1: "Montée de niveau",
+  2: "Reproduction",
+  3: "Maître des capacités",
+  4: "CT / CS",
+  5: "Pikachu surfeur (Stadium)",
+  6: "Reproduction avec Balle Lumière",
+  7: "Purification (Colosseum)",
+  8: "Capacité obscure (XD)",
+  9: "Purification (XD)",
+  10: "Changement de forme",
+  11: "Boîte Zygarde",
+  12: "Entraînement",
+};
+
+export function formatMoveMethod(methodId: number) {
+  return MOVE_METHOD_LABELS[methodId] ?? "Méthode non renseignée";
+}
+
 const number = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 3 });
 export function formatNumber(value: number) {
   return number.format(value);
