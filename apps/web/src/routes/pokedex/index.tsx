@@ -139,16 +139,29 @@ function Page() {
                 to="/pokedex/$pokemonId"
                 params={{ pokemonId: entry.identifier }}
                 search={{ gen }}
-                className="flex h-full flex-col gap-2 rounded-xl border p-4 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-4"
+                className="group flex h-full min-h-28 items-center justify-between gap-3 overflow-hidden rounded-xl border bg-card/60 px-4 py-3 transition-colors hover:border-primary/30 hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-4"
               >
-                <span className="text-xs text-muted-foreground">
-                  N° {String(entry.dexNumber).padStart(4, "0")}
+                <span className="flex min-w-0 flex-col gap-1.5">
+                  <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                    N° {String(entry.dexNumber).padStart(4, "0")}
+                  </span>
+                  <span className="truncate font-medium">{entry.name}</span>
+                  <span className="flex flex-wrap gap-1">
+                    {entry.types.map((identifier) => (
+                      <TypeBadge key={identifier} identifier={identifier} />
+                    ))}
+                  </span>
                 </span>
-                <span className="font-medium">{entry.name}</span>
-                <span className="flex flex-wrap gap-1">
-                  {entry.types.map((identifier) => (
-                    <TypeBadge key={identifier} identifier={identifier} />
-                  ))}
+                <span className="grid size-20 shrink-0 place-items-center rounded-xl bg-muted/70 transition-colors group-hover:bg-accent/60">
+                  <img
+                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${entry.id}.png`}
+                    alt=""
+                    width={80}
+                    height={80}
+                    loading="lazy"
+                    decoding="async"
+                    className="size-20 object-contain transition-transform duration-200 group-hover:scale-110"
+                  />
                 </span>
               </Link>
             </li>
