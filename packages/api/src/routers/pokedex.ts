@@ -129,6 +129,14 @@ const detail = publicProcedure
         isMythical: species.isMythical,
         speciesId: species.id,
         introducedIn: species.generationId,
+        isAvailableInGeneration: sql<boolean>`exists (
+          select 1
+            from staging.pokemon_game_indices game_index
+            join version game_version on game_version.id = game_index.version_id::int
+            join version_group game_group on game_group.id = game_version.version_group_id
+           where game_index.pokemon_id::int = ${pokemon.id}
+             and game_group.generation_id = ${input.generationId}
+        )`,
       })
       .from(pokemon)
       .innerJoin(species, eq(species.id, pokemon.speciesId))

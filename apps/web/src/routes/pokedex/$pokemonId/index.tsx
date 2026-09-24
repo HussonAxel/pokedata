@@ -508,7 +508,11 @@ function Page() {
             </table>
           </div>
         ) : (
-          <p className="text-muted-foreground">Aucune attaque renseignée pour cette génération.</p>
+          <p className="text-muted-foreground">
+            {data.isAvailableInGeneration
+              ? "Aucune attaque renseignée pour cette génération."
+              : `Ce Pokémon n’est répertorié dans aucun jeu de la génération ${gen}. Il ne peut donc pas y être transféré depuis Pokémon HOME.`}
+          </p>
         )}
       </DetailSection>
 
