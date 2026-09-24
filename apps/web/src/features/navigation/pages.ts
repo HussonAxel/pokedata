@@ -183,9 +183,10 @@ export const pages = [
   },
   {
     path: "/encyclopedie/types",
-    title: "Types",
+    title: "Table des types",
     section: "Explorer",
-    description: "Espace prévu pour types.",
+    description:
+      "Efficacité de chaque type d'attaque contre chaque type défenseur, par génération.",
   },
   {
     path: "/encyclopedie/types/$typeId",
@@ -306,6 +307,12 @@ export const pages = [
     title: "Assistant d’évolution",
     section: "Outils",
     description: "Espace prévu pour assistant d’évolution.",
+  },
+  {
+    path: "/outils/fichiers",
+    title: "Gestionnaire de fichiers",
+    section: "Outils",
+    description: "Espace de fichiers avec dossiers, imports locaux et aperçus.",
   },
   {
     path: "/outils/transferts",
