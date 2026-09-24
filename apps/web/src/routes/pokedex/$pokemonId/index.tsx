@@ -80,14 +80,14 @@ function DetailSection({
 }) {
   return (
     <section id={id} aria-labelledby={`${id}-title`} className="min-w-0 scroll-mt-8">
-      <Card>
+      <Card className="min-w-0">
         <CardHeader>
           <CardTitle>
             <h2 id={`${id}-title`}>{title}</h2>
           </CardTitle>
           {description ? <CardDescription>{description}</CardDescription> : null}
         </CardHeader>
-        <CardContent>{children}</CardContent>
+        <CardContent className="min-w-0">{children}</CardContent>
       </Card>
     </section>
   );
@@ -126,7 +126,10 @@ function Page() {
   ];
 
   return (
-    <main id="contenu" className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 md:px-8">
+    <main
+      id="contenu"
+      className="mx-auto flex min-w-0 w-full max-w-6xl flex-col gap-8 px-5 py-10 md:px-8"
+    >
       <Link
         to="/pokedex"
         search={{ gen }}
