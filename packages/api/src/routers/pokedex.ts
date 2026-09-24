@@ -440,4 +440,52 @@ const detail = publicProcedure
     };
   });
 
-export const pokedexRouter = { index, reference, detail };
+/**
+ * Table des types d'une génération : une ligne par type attaquant, une colonne
+ * par type défenseur. La matrice est renvoyée pleine (100 = neutre par défaut)
+ * pour que l'affichage n'ait aucune jointure à refaire dans le navigateur.
+ */
+const typeChart = publicProcedure
+  .input(z.object({ locale, generationId }))
+  .handler(async ({ context, input }) => {
+    const [types, efficacy] = await Promise.all([
+      context.db
+        .select({ id: type.id, identifier: type.identifier, name: typeName.name })
+        .from(type)
+        .innerJoin(typeName, and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)))
+        .where(
+          and(
+            lte(type.generationId, input.generationId),
+            // Un type sans aucune ligne d'efficacité (Stellaire) n'a pas de
+            // place dans la table : il ferait une ligne et une colonne vides.
+            sql`exists (select 1 from ${typeEfficacy}
+                         where ${typeEfficacy.generationId} = ${input.generationId}
+                           and ${typeEfficacy.damageTypeId} = ${type.id})`,
+          ),
+        )
+        .orderBy(asc(type.id)),
+      context.db
+        .select({
+          damageTypeId: typeEfficacy.damageTypeId,
+          targetTypeId: typeEfficacy.targetTypeId,
+          factor: typeEfficacy.factor,
+        })
+        .from(typeEfficacy)
+        .where(eq(typeEfficacy.generationId, input.generationId)),
+    ]);
+
+    const row = new Map(types.map((entry, index) => [entry.id, index]));
+    // Un couple sans ligne d'efficacité (type sans matchup connu) reste neutre.
+    const factors = types.map(() => types.map(() => 100));
+
+    for (const line of efficacy) {
+      const y = row.get(line.damageTypeId);
+      const x = row.get(line.targetTypeId);
+      if (y === undefined || x === undefined) continue;
+      factors[y][x] = line.factor;
+    }
+
+    return { generationId: input.generationId, types, factors };
+  });
+
+export const pokedexRouter = { index, reference, detail, typeChart };
