@@ -33,7 +33,7 @@ export function TypeBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border border-current/20 px-2.5 py-1 text-xs font-medium capitalize ${
+      className={`inline-flex items-center gap-1.5 rounded-md border border-current/20 px-2.5 py-1 text-xs font-medium capitalize ${
         TYPE_CLASSES[identifier] ?? "border-border bg-muted text-muted-foreground"
       }`}
     >

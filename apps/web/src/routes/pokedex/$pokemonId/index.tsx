@@ -123,8 +123,8 @@ function Page() {
       entries: data.matchups.filter((entry) => entry.multiplier > 0 && entry.multiplier < 1),
     },
     { title: "Immunités", entries: data.matchups.filter((entry) => entry.multiplier === 0) },
-    { title: "Dégâts neutres", entries: data.matchups.filter((entry) => entry.multiplier === 1) },
   ];
+  const neutralMatchups = data.matchups.filter((entry) => entry.multiplier === 1);
 
   return (
     <main
@@ -258,24 +258,47 @@ function Page() {
           title="Sensibilités défensives"
           description="Multiplicateurs des dégâts reçus selon les types. Hors talents, objets et effets de combat."
         >
-          <div className="flex flex-col gap-5">
-            {matchupGroups.map((group) => (
-              <div key={group.title} className="flex flex-col gap-2">
-                <h3 className="font-medium">{group.title}</h3>
-                {group.entries.length ? (
-                  <ul className="flex flex-wrap gap-2">
-                    {group.entries.map((entry) => (
-                      <li key={entry.identifier} className="flex items-center gap-1.5">
-                        <TypeBadge identifier={entry.identifier} label={entry.name} />
-                        <span className="tabular-nums">×{formatNumber(entry.multiplier)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground">Aucune</p>
-                )}
-              </div>
-            ))}
+          <div className="flex flex-col gap-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              {matchupGroups.map((group) => (
+                <section key={group.title} className="flex flex-col gap-3 rounded-lg border p-4">
+                  <h3 className="font-medium">{group.title}</h3>
+                  {group.entries.length ? (
+                    <ul className="flex flex-wrap gap-2">
+                      {group.entries.map((entry) => (
+                        <li key={entry.identifier} className="flex items-center gap-2">
+                          <TypeBadge identifier={entry.identifier} label={entry.name} />
+                          <span className="text-sm font-semibold tabular-nums">
+                            ×{formatNumber(entry.multiplier)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Aucun type</p>
+                  )}
+                </section>
+              ))}
+            </div>
+            <details className="rounded-lg border p-4">
+              <summary className="cursor-pointer font-medium marker:text-muted-foreground">
+                Types neutres{" "}
+                <span className="ml-1 text-sm text-muted-foreground">
+                  ({neutralMatchups.length})
+                </span>
+              </summary>
+              {neutralMatchups.length ? (
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {neutralMatchups.map((entry) => (
+                    <li key={entry.identifier}>
+                      <TypeBadge identifier={entry.identifier} label={entry.name} />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-muted-foreground">Aucun type neutre</p>
+              )}
+            </details>
           </div>
         </DetailSection>
       </div>
