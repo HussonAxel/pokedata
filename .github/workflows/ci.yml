@@ -28,6 +28,11 @@ jobs:
           package-manager-cache: false
       - run: npm install --global pnpm@11.9.0
       - run: pnpm install --frozen-lockfile
+      - name: Build application and generate router types
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: "1"
+          BETTER_AUTH_SECRET: build-time-placeholder-secret-not-used-at-runtime
       - run: pnpm check
       - run: pnpm test
       - name: Validate deployment scripts
