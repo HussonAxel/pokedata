@@ -32,8 +32,7 @@ export function PokemonPreviewCard({
   const queryClient = useQueryClient();
   const options = pokedexPreviewOptions({ identifier, locale: "fr", generationId: gen });
 
-  // Dès l'approche du pointeur ou du focus, bien avant la fin du délai
-  // d'ouverture : les données et l'illustration arrivent avec la carte.
+  // Charge les données et l'illustration dès le survol ou le focus.
   const warm = () => {
     void queryClient.prefetchQuery(options).then(() => {
       const data = queryClient.getQueryData(options.queryKey);
@@ -45,12 +44,18 @@ export function PokemonPreviewCard({
     <PreviewCard>
       <PreviewCardTrigger
         render={children}
-        delay={350}
-        closeDelay={200}
+        delay={0}
+        closeDelay={0}
         onPointerEnter={warm}
         onFocus={warm}
       />
-      <PreviewCardPanel variant="flush" side="top" sideOffset={10} className="w-72">
+      <PreviewCardPanel
+        variant="flush"
+        side="top"
+        sideOffset={10}
+        animated={false}
+        className="w-72"
+      >
         <PokemonPreview identifier={identifier} gen={gen} />
       </PreviewCardPanel>
     </PreviewCard>

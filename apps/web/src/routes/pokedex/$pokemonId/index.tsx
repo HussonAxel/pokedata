@@ -9,11 +9,10 @@ import {
   CardTitle,
 } from "@pokedata/ui/components/card";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@pokedata/ui/components/tooltip";
+  PreviewCard,
+  PreviewCardPanel,
+  PreviewCardTrigger,
+} from "@pokedata/ui/components/preview-card";
 import {
   STAT_LABELS,
   formatForm,
@@ -62,8 +61,7 @@ const SECTIONS = [
   ["identite", "Identité"],
   ["statistiques", "Statistiques"],
   ["relations", "Relations de types"],
-  ["evolutions", "Évolutions"],
-  ["formes", "Formes"],
+  ["evolutions", "Évolutions et formes"],
   ["entrainement", "Entraînement"],
   ["reproduction", "Reproduction"],
   ["reproduction-groupes", "Groupes d’œufs"],
@@ -110,6 +108,32 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+function PokemonSprite({
+  pokemonId,
+  formIdentifier,
+}: {
+  pokemonId: number;
+  formIdentifier?: string | null;
+}) {
+  const baseUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
+  const fallback = `${baseUrl}/${pokemonId}.png`;
+
+  return (
+    <img
+      src={formIdentifier ? `${baseUrl}/${pokemonId}-${formIdentifier}.png` : fallback}
+      alt=""
+      width={64}
+      height={64}
+      loading="lazy"
+      decoding="async"
+      className="size-16 shrink-0 object-contain"
+      onError={(event) => {
+        if (event.currentTarget.src !== fallback) event.currentTarget.src = fallback;
+      }}
+    />
+  );
+}
+
 function Page() {
   const { pokemonId } = Route.useParams();
   const { gen } = Route.useSearch();
@@ -123,6 +147,41 @@ function Page() {
   const currentVariety = data.varieties.find((entry) => entry.id === data.id);
   const effort = data.stats.filter((line) => line.effort > 0);
   const familyById = new Map(data.evolutionFamily.map((entry) => [entry.speciesId, entry]));
+  const familyPokemonIds = new Set(data.evolutionFamily.map((entry) => entry.pokemonId));
+  const relatedPokemon = [
+    ...data.evolutionFamily.map((entry) => {
+      const parent =
+        entry.evolvesFromSpeciesId === null
+          ? undefined
+          : familyById.get(entry.evolvesFromSpeciesId);
+
+      return {
+        ...entry,
+        description: parent ? `Évolution de ${parent.name}` : "Premier stade disponible",
+      };
+    }),
+    ...data.varieties
+      .filter((entry) => !familyPokemonIds.has(entry.id))
+      .map((entry) => ({
+        pokemonId: entry.id,
+        speciesId: data.speciesId,
+        identifier: entry.identifier,
+        name: entry.isDefault ? data.name : formatForm(entry.identifier),
+        description: entry.isDefault ? "Variété principale" : `Variété de ${data.name}`,
+      })),
+  ];
+  const defaultForm = data.forms.find((form) => form.isDefault);
+  const additionalForms = data.forms.filter((form) => !form.isDefault);
+
+  const formDescription = (form: (typeof data.forms)[number]) =>
+    [
+      form.isDefault && form.formIdentifier ? `Forme ${formatForm(form.formIdentifier)}` : null,
+      form.isMega ? "Méga-Évolution" : null,
+      form.isBattleOnly ? "En combat uniquement" : null,
+      form.introducedIn !== null ? `Depuis la génération ${form.introducedIn}` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
 
   return (
     <main
@@ -267,123 +326,61 @@ function Page() {
 
       <DetailSection
         id="evolutions"
-        title="Famille d’évolution"
-        description={`Espèces de la famille présentes en génération ${gen}. Les conditions d’évolution ne sont pas encore renseignées.`}
+        title="Évolutions et formes"
+        description={`Famille d’évolution et variétés de ${data.name} présentes en génération ${gen}.`}
       >
-        {data.evolutionFamily.length > 1 ? (
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {data.evolutionFamily.map((entry) => {
-              const parent =
-                entry.evolvesFromSpeciesId === null
-                  ? undefined
-                  : familyById.get(entry.evolvesFromSpeciesId);
-              const isCurrent = entry.speciesId === data.speciesId;
-              const link = (
-                <Link
-                  to="/pokedex/$pokemonId"
-                  params={{ pokemonId: entry.identifier }}
-                  search={{ gen }}
-                  aria-current={isCurrent ? "true" : undefined}
-                  className="flex h-full items-center gap-3 rounded-lg border p-4 hover:bg-muted aria-current:border-primary focus-visible:outline-2 focus-visible:outline-offset-4"
-                >
-                  <img
-                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${entry.pokemonId}.png`}
-                    alt=""
-                    width={64}
-                    height={64}
-                    loading="lazy"
-                    decoding="async"
-                    className="size-16 shrink-0 object-contain"
-                  />
-                  <span className="flex min-w-0 flex-col gap-1">
-                    <span className="text-sm text-muted-foreground">
-                      N° {String(entry.speciesId).padStart(4, "0")}
-                    </span>
-                    <span className="font-semibold">{entry.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {parent ? `Évolution de ${parent.name}` : "Premier stade disponible"}
-                    </span>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {relatedPokemon.map((entry) => {
+            const isCurrent = entry.pokemonId === data.id;
+            const link = (
+              <Link
+                to="/pokedex/$pokemonId"
+                params={{ pokemonId: entry.identifier }}
+                search={{ gen }}
+                aria-current={isCurrent ? "page" : undefined}
+                className="flex h-full items-center gap-3 rounded-lg border p-4 hover:bg-muted aria-current:border-primary focus-visible:outline-2 focus-visible:outline-offset-4"
+              >
+                <PokemonSprite pokemonId={entry.pokemonId} />
+                <span className="flex min-w-0 flex-col gap-1">
+                  <span className="text-sm text-muted-foreground">
+                    N° {String(entry.speciesId).padStart(4, "0")}
                   </span>
-                </Link>
-              );
-              return (
-                <li key={entry.speciesId}>
-                  {/* La fiche affichée n'a pas besoin de son propre aperçu. */}
-                  {isCurrent ? (
-                    link
-                  ) : (
-                    <PokemonPreviewCard identifier={entry.identifier} gen={gen}>
-                      {link}
-                    </PokemonPreviewCard>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="text-muted-foreground">
-            Aucune autre espèce de cette famille en génération {gen}.
-          </p>
-        )}
-      </DetailSection>
+                  <span className="font-semibold capitalize">{entry.name}</span>
+                  <span className="text-sm text-muted-foreground">{entry.description}</span>
+                  {isCurrent && defaultForm ? (
+                    <span className="text-sm text-muted-foreground">
+                      {formDescription(defaultForm)}
+                    </span>
+                  ) : null}
+                </span>
+              </Link>
+            );
 
-      <DetailSection
-        id="formes"
-        title="Variétés et formes"
-        description="Les variétés possèdent leur propre fiche. Les noms de formes sont ceux de la source lorsqu’aucune traduction n’est disponible."
-      >
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-3">
-            <h3 className="font-medium">Variétés de {data.name}</h3>
-            <ul className="flex flex-wrap gap-2">
-              {data.varieties.map((entry) => (
-                <li key={entry.id}>
-                  <Link
-                    to="/pokedex/$pokemonId"
-                    params={{ pokemonId: entry.identifier }}
-                    search={{ gen }}
-                    aria-current={entry.id === data.id ? "page" : undefined}
-                    className="inline-flex rounded-lg border px-3 py-2 capitalize hover:bg-muted aria-current:border-primary focus-visible:outline-2 focus-visible:outline-offset-4"
-                  >
-                    {entry.isDefault
-                      ? `${data.name} · variété principale`
-                      : formatForm(entry.identifier)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="flex flex-col gap-3">
-            <h3 className="font-medium">Formes de cette variété</h3>
-            {data.forms.length ? (
-              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {data.forms.map((form) => (
-                  <li key={form.id} className="flex flex-col gap-1 rounded-lg border p-3">
-                    <span className="font-medium capitalize">
-                      {form.formIdentifier ? formatForm(form.formIdentifier) : "Forme principale"}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {[
-                        form.isDefault ? "Par défaut" : null,
-                        form.isMega ? "Méga-Évolution" : null,
-                        form.isBattleOnly ? "En combat uniquement" : null,
-                        form.introducedIn !== null
-                          ? `Depuis la génération ${form.introducedIn}`
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground">
-                Aucune forme renseignée pour cette génération.
-              </p>
-            )}
-          </div>
-        </div>
+            return (
+              <li key={entry.pokemonId}>
+                {isCurrent ? (
+                  link
+                ) : (
+                  <PokemonPreviewCard identifier={entry.identifier} gen={gen}>
+                    {link}
+                  </PokemonPreviewCard>
+                )}
+              </li>
+            );
+          })}
+          {additionalForms.map((form) => (
+            <li key={`form-${form.id}`} className="flex items-center gap-3 rounded-lg border p-4">
+              <PokemonSprite pokemonId={data.id} formIdentifier={form.formIdentifier} />
+              <span className="flex min-w-0 flex-col gap-1">
+                <span className="text-sm text-muted-foreground">Forme de {data.name}</span>
+                <span className="font-semibold capitalize">
+                  {formatForm(form.formIdentifier || form.identifier)}
+                </span>
+                <span className="text-sm text-muted-foreground">{formDescription(form)}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
       </DetailSection>
 
       <div className="grid items-start gap-6 lg:grid-cols-2">
@@ -462,43 +459,49 @@ function Page() {
         description="Les talents cachés sont distingués des talents classiques."
       >
         {data.abilities.length ? (
-          <TooltipProvider delay={250}>
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {data.abilities.map((ability) => {
-                const talentType = ability.isHidden ? "Talent caché" : `Talent ${ability.slot}`;
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {data.abilities.map((ability) => {
+              const talentType = ability.isHidden ? "Talent caché" : `Talent ${ability.slot}`;
 
-                return (
-                  <li key={ability.id}>
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <button
-                            type="button"
-                            aria-label={`Détails de ${ability.name} — ${talentType}`}
-                            className="flex h-full w-full flex-col items-start gap-1 rounded-lg border p-4 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-4"
-                          >
-                            <span className="font-medium">{ability.name}</span>
-                            <span className="text-sm text-muted-foreground">{talentType}</span>
-                          </button>
-                        }
-                      />
-                      <TooltipContent variant="card">
-                        <div className="flex flex-col gap-3">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="font-semibold leading-tight">{ability.name}</span>
-                            <span className="text-xs text-muted-foreground">{talentType}</span>
-                          </div>
-                          <span className="border-t pt-2 text-muted-foreground">
-                            Talent répertorié pour {data.name}.
-                          </span>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </li>
-                );
-              })}
-            </ul>
-          </TooltipProvider>
+              return (
+                <li key={ability.id}>
+                  <PreviewCard>
+                    <PreviewCardTrigger
+                      delay={250}
+                      closeDelay={200}
+                      render={
+                        <Link
+                          to="/encyclopedie/talents/$talentId"
+                          params={{ talentId: ability.identifier }}
+                          search={{ gen }}
+                          className="flex h-full w-full flex-col items-start gap-1 rounded-lg border p-4 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-4"
+                        >
+                          <span className="font-medium">{ability.name}</span>
+                          <span className="text-sm text-muted-foreground">{talentType}</span>
+                        </Link>
+                      }
+                    />
+                    <PreviewCardPanel side="top">
+                      <div className="flex flex-col gap-3">
+                        <p>
+                          {ability.description ??
+                            "Aucune description française disponible pour cette génération."}
+                        </p>
+                        <Link
+                          to="/encyclopedie/talents/$talentId"
+                          params={{ talentId: ability.identifier }}
+                          search={{ gen }}
+                          className="self-start font-medium underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4"
+                        >
+                          Voir le talent
+                        </Link>
+                      </div>
+                    </PreviewCardPanel>
+                  </PreviewCard>
+                </li>
+              );
+            })}
+          </ul>
         ) : (
           <p className="text-muted-foreground">Aucun talent renseigné.</p>
         )}

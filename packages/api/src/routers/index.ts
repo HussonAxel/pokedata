@@ -3,6 +3,7 @@ import type { RouterClient } from "@orpc/server";
 import { protectedProcedure, publicProcedure } from "../index";
 
 import { pokedexRouter } from "./pokedex";
+import { talentsRouter } from "./talents";
 
 export const appRouter = {
   healthCheck: publicProcedure.handler(() => {
@@ -15,6 +16,7 @@ export const appRouter = {
     };
   }),
   pokedex: pokedexRouter,
+  talents: talentsRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;

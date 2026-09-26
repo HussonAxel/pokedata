@@ -27,6 +27,7 @@ const DOMAIN_TABLES = [
   "move_name",
   "move",
   "pokemon_ability",
+  "ability_flavor_text",
   "ability_name",
   "ability",
   "pokemon_stat",
@@ -214,6 +215,15 @@ const STEPS: { label: string; sql: string }[] = [
     sql: `insert into pokemon_ability (pokemon_id, ability_id, slot, is_hidden)
       select pokemon_id::int, ability_id::int, slot::int, is_hidden = '1' from staging.pokemon_abilities
       where pokemon_id::int < 10000 and ability_id::int < 10000`,
+  },
+  {
+    label: "ability_flavor_text",
+    sql: `insert into ability_flavor_text (ability_id, language, version_group_id, flavor_text)
+      select f.ability_id::int, l.code, f.version_group_id::int,
+        regexp_replace(trim(f.flavor_text), '[[:space:]]+', ' ', 'g')
+      from staging.ability_flavor_text f
+      join (values ${LANGUAGES}) l(id, code) on l.id = f.language_id::int
+      where f.ability_id::int < 10000 and nullif(trim(f.flavor_text), '') is not null`,
   },
   {
     label: "move",

@@ -235,6 +235,21 @@ export const abilityName = pgTable(
   (table) => [primaryKey({ columns: [table.abilityId, table.language] })],
 );
 
+export const abilityFlavorText = pgTable(
+  "ability_flavor_text",
+  {
+    abilityId: integer("ability_id")
+      .notNull()
+      .references(() => ability.id),
+    language: text("language").notNull(),
+    versionGroupId: integer("version_group_id")
+      .notNull()
+      .references(() => versionGroup.id),
+    flavorText: text("flavor_text").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.abilityId, table.language, table.versionGroupId] })],
+);
+
 export const pokemonAbility = pgTable(
   "pokemon_ability",
   {

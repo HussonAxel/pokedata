@@ -33,6 +33,7 @@ import { and, asc, eq, isNull, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Context } from "../context";
+import { abilityDescription } from "../ability-description";
 import { publicProcedure } from "../index";
 
 /**
@@ -342,6 +343,7 @@ const detail = publicProcedure
           id: ability.id,
           identifier: ability.identifier,
           name: abilityName.name,
+          description: abilityDescription(input.locale, input.generationId),
           slot: pokemonAbility.slot,
           isHidden: pokemonAbility.isHidden,
         })

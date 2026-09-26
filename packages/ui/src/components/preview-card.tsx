@@ -173,6 +173,7 @@ type PreviewCardPanelProps = Omit<
     /** Classes de la carte elle-même, pas du positionneur. */
     className?: string;
     children?: ReactNode;
+    animated?: boolean;
   };
 
 function PreviewCardPanel({
@@ -180,6 +181,7 @@ function PreviewCardPanel({
   variant,
   align = "center",
   sideOffset = 4,
+  animated = true,
   children,
   ...props
 }: PreviewCardPanelProps) {
@@ -191,9 +193,18 @@ function PreviewCardPanel({
         className="z-50"
         {...props}
       >
-        <PreviewCardPopup className={cn(previewCardPanelVariants({ variant }), className)}>
-          {children}
-        </PreviewCardPopup>
+        {animated ? (
+          <PreviewCardPopup className={cn(previewCardPanelVariants({ variant }), className)}>
+            {children}
+          </PreviewCardPopup>
+        ) : (
+          <PreviewCardPrimitive.Popup
+            data-slot="preview-card-popup"
+            className={cn(previewCardPanelVariants({ variant }), className)}
+          >
+            {children}
+          </PreviewCardPrimitive.Popup>
+        )}
       </PreviewCardPrimitive.Positioner>
     </PreviewCardPortal>
   );
