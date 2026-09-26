@@ -482,10 +482,8 @@ function Page() {
                           </button>
                         }
                       />
-                      <TooltipContent
-                        className="max-w-64 whitespace-normal rounded-lg border bg-popover p-4 text-left text-sm text-popover-foreground shadow-md [&>svg]:bg-popover [&>svg]:fill-popover"
-                      >
-                        <div className="flex flex-col gap-3">
+                      <TooltipContent className="max-w-64 whitespace-normal text-left">
+                        <div className="flex flex-col gap-3 rounded-lg border bg-popover p-4 text-sm text-popover-foreground shadow-md">
                           <div className="flex flex-col gap-0.5">
                             <span className="font-semibold leading-tight">{ability.name}</span>
                             <span className="text-xs text-muted-foreground">{talentType}</span>
