@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@pokedata/ui/components/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/motion/popover";
 import {
   STAT_LABELS,
   formatForm,
@@ -479,14 +480,39 @@ function Page() {
       >
         {data.abilities.length ? (
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {data.abilities.map((ability) => (
-              <li key={ability.id} className="flex flex-col gap-1 rounded-lg border p-4">
-                <span className="font-medium">{ability.name}</span>
-                <span className="text-sm text-muted-foreground">
-                  {ability.isHidden ? "Talent caché" : `Talent ${ability.slot}`}
-                </span>
-              </li>
-            ))}
+            {data.abilities.map((ability) => {
+              const talentType = ability.isHidden ? "Talent caché" : `Talent ${ability.slot}`;
+
+              return (
+                <li key={ability.id}>
+                  <Popover className="w-full" side="bottom" align="start">
+                    <PopoverTrigger>
+                      <button
+                        type="button"
+                        aria-label={`Détails de ${ability.name} — ${talentType}`}
+                        className="flex h-full w-full flex-col items-start gap-1 rounded-lg border p-4 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-4"
+                      >
+                        <span className="font-medium">{ability.name}</span>
+                        <span className="text-sm text-muted-foreground">{talentType}</span>
+                        <span className="mt-1 text-xs text-muted-foreground">Voir les détails</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      aria-label={`Détails du talent ${ability.name}`}
+                      className="w-64"
+                    >
+                      <div className="flex flex-col gap-2">
+                        <p className="font-medium">{ability.name}</p>
+                        <p className="text-sm text-muted-foreground">{talentType}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Talent répertorié pour {data.name}.
+                        </p>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="text-muted-foreground">Aucun talent renseigné.</p>
