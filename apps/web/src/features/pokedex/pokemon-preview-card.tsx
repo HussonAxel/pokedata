@@ -3,19 +3,15 @@ import { cn } from "@pokedata/ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowRightIcon } from "lucide-react";
-import { motion, useReducedMotion, type MotionStyle } from "motion/react";
 import type { ReactElement } from "react";
 
-import { NumberTicker } from "@/components/motion/number-ticker";
 import {
   PreviewCard,
   PreviewCardPanel,
   PreviewCardTrigger,
 } from "@pokedata/ui/components/preview-card";
-import { STAT_SHORT_LABELS } from "@/features/pokedex/detail-format";
 import { pokedexPreviewOptions } from "@/features/pokedex/queries";
 import { TypeBadge, typeTint } from "@/features/pokedex/type-badge";
-import { EASE_OUT } from "@/lib/ease";
 
 const artworkUrl = (id: number) =>
   `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
@@ -62,7 +58,6 @@ export function PokemonPreviewCard({
 }
 
 function PokemonPreview({ identifier, gen }: { identifier: string; gen: number }) {
-  const reduce = useReducedMotion();
   const { data, isPending } = useQuery(
     pokedexPreviewOptions({ identifier, locale: "fr", generationId: gen }),
   );
@@ -109,45 +104,66 @@ function PokemonPreview({ identifier, gen }: { identifier: string; gen: number }
         ))}
       </div>
 
-      <dl className="flex flex-col gap-1.5 px-4 pt-3">
-        {data.stats.map((line, index) => (
-          <div
-            key={line.identifier}
-            className="grid grid-cols-[4.5rem_minmax(0,1fr)_3ch] items-center gap-x-3"
-          >
-            <dt className="text-muted-foreground">
-              {STAT_SHORT_LABELS[line.identifier] ?? line.identifier}
-            </dt>
-            <dd aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-muted">
-              <motion.div
-                className="h-full w-(--stat-width) origin-left rounded-full bg-primary"
-                style={
-                  {
-                    "--stat-width": `${Math.min((line.baseStat / 255) * 100, 100)}%`,
-                  } as MotionStyle
-                }
-                initial={reduce ? false : { scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 0.5, delay: 0.04 * index, ease: EASE_OUT }}
-              />
-            </dd>
-            {/* En flex : le compteur, colonne de chiffres, se centre sur la ligne. */}
-            <dd className="flex justify-end font-semibold">
-              <NumberTicker value={line.baseStat} startOnView={false} />
-            </dd>
+      <div className="flex flex-col gap-3 px-4 pt-3">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">Talents</span>
+          <ul className="flex flex-wrap gap-1.5">
+            {data.abilities.map((ability) => (
+              <li
+                key={ability.id}
+                className="rounded-md border px-2 py-1 text-xs"
+                title={ability.isHidden ? "Talent caché" : undefined}
+              >
+                {ability.name}
+                {ability.isHidden ? " · caché" : ""}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">Couverture défensive</span>
+          <div className="flex flex-col gap-2 text-xs">
+            {[
+              {
+                label: "Faiblesses",
+                values: data.matchups.filter((matchup) => matchup.multiplier > 1),
+              },
+              {
+                label: "Résistances",
+                values: data.matchups.filter(
+                  (matchup) => matchup.multiplier > 0 && matchup.multiplier < 1,
+                ),
+              },
+              {
+                label: "Immunités",
+                values: data.matchups.filter((matchup) => matchup.multiplier === 0),
+              },
+            ].map((group) => (
+              <div key={group.label} className="flex items-start gap-2">
+                <span className="w-16 shrink-0 pt-0.5 text-muted-foreground">{group.label}</span>
+                {group.values.length ? (
+                  <ul className="flex flex-wrap gap-1">
+                    {group.values.map((matchup) => (
+                      <li key={matchup.identifier}>
+                        <TypeBadge
+                          identifier={matchup.identifier}
+                          label={`${matchup.name} ×${matchup.multiplier}`}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="text-muted-foreground">Aucune</span>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-      </dl>
+        </div>
+      </div>
 
       <div className="mt-3 flex items-center justify-between border-t px-4 py-2.5">
-        <span className="flex items-center gap-1.5 text-muted-foreground">
-          Total
-          <NumberTicker
-            value={data.statTotal}
-            startOnView={false}
-            className="font-semibold text-foreground"
-          />
-        </span>
+        <span className="text-xs text-muted-foreground">Données de la génération {gen}</span>
         <Link
           to="/pokedex/$pokemonId"
           params={{ pokemonId: data.identifier }}

@@ -492,8 +492,8 @@ const detail = publicProcedure
   });
 
 /**
- * Aperçu d'une variété pour les cartes au survol : identité, typage et
- * statistiques de la génération, sans aucune des longues listes de la fiche.
+ * Aperçu d'une variété pour les cartes au survol : identité, typage,
+ * talents et couverture défensive, sans les longues listes de la fiche.
  */
 const preview = publicProcedure
   .input(z.object({ identifier: z.string().min(1).max(80), locale, generationId }))
@@ -519,9 +519,43 @@ const preview = publicProcedure
       return null;
     }
 
-    const [types, stats] = await Promise.all([
+    const [types, abilities, efficacy] = await Promise.all([
       selectTypes(context.db, entry.id, input),
-      selectStats(context.db, entry.id, input.generationId),
+      context.db
+        .select({
+          id: ability.id,
+          identifier: ability.identifier,
+          name: abilityName.name,
+          slot: pokemonAbility.slot,
+          isHidden: pokemonAbility.isHidden,
+        })
+        .from(pokemonAbility)
+        .innerJoin(ability, eq(ability.id, pokemonAbility.abilityId))
+        .innerJoin(
+          abilityName,
+          and(eq(abilityName.abilityId, ability.id), eq(abilityName.language, input.locale)),
+        )
+        .where(eq(pokemonAbility.pokemonId, entry.id))
+        .orderBy(asc(pokemonAbility.slot)),
+      context.db
+        .select({
+          identifier: type.identifier,
+          name: typeName.name,
+          factor: typeEfficacy.factor,
+        })
+        .from(typeEfficacy)
+        .innerJoin(type, eq(type.id, typeEfficacy.damageTypeId))
+        .innerJoin(typeName, and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)))
+        .innerJoin(
+          pokemonType,
+          and(
+            eq(pokemonType.typeId, typeEfficacy.targetTypeId),
+            eq(pokemonType.pokemonId, entry.id),
+            eq(pokemonType.generationId, input.generationId),
+          ),
+        )
+        .where(eq(typeEfficacy.generationId, input.generationId))
+        .orderBy(asc(type.id)),
     ]);
 
     // Même règle que la fiche : sans typage à cette génération, la variété n'existait pas.
@@ -529,11 +563,21 @@ const preview = publicProcedure
       return null;
     }
 
+    const matchups = new Map<string, { identifier: string; name: string; multiplier: number }>();
+    for (const row of efficacy) {
+      const current = matchups.get(row.identifier);
+      matchups.set(row.identifier, {
+        identifier: row.identifier,
+        name: row.name,
+        multiplier: ((current?.multiplier ?? 1) * row.factor) / 100,
+      });
+    }
+
     return {
       ...entry,
       types,
-      stats,
-      statTotal: stats.reduce((total, line) => total + line.baseStat, 0),
+      abilities,
+      matchups: [...matchups.values()],
     };
   });
 
