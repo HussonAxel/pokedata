@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 const TYPE_CLASSES: Record<string, string> = {
   normal: "bg-stone-500/10 text-stone-700 dark:text-stone-300",
   fighting: "bg-red-500/10 text-red-700 dark:text-red-300",
@@ -22,32 +20,45 @@ const TYPE_CLASSES: Record<string, string> = {
   stellar: "bg-teal-500/10 text-teal-700 dark:text-teal-300",
 };
 
+const TYPE_LABELS: Record<string, string> = {
+  normal: "Normal",
+  fighting: "Combat",
+  flying: "Vol",
+  poison: "Poison",
+  ground: "Sol",
+  rock: "Roche",
+  bug: "Insecte",
+  ghost: "Spectre",
+  steel: "Acier",
+  fire: "Feu",
+  water: "Eau",
+  grass: "Plante",
+  electric: "Électrik",
+  psychic: "Psy",
+  ice: "Glace",
+  dragon: "Dragon",
+  dark: "Ténèbres",
+  fairy: "Fée",
+  stellar: "Stellaire",
+};
+
 /** Teinte d'un type (fond léger, encre lisible), pour les surfaces hors badge. */
 export function typeTint(identifier: string) {
   return TYPE_CLASSES[identifier] ?? "bg-muted text-muted-foreground";
 }
 
-export function TypeBadge({
-  identifier,
-  label,
-  icon,
-}: {
-  identifier: string;
-  label?: string;
-  icon?: ReactNode;
-}) {
+export function TypeBadge({ identifier, label }: { identifier: string; label?: string }) {
+  const name = label ?? TYPE_LABELS[identifier] ?? identifier;
+
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-md border border-current/20 px-2.5 py-1 text-xs font-medium capitalize ${
-        TYPE_CLASSES[identifier] ?? "border-border bg-muted text-muted-foreground"
-      }`}
-    >
-      {icon ? (
-        <span aria-hidden="true" className="inline-flex [&_svg]:size-3.5">
-          {icon}
-        </span>
-      ) : null}
-      {label ?? identifier}
-    </span>
+    <img
+      src={`/pokemon-types/${identifier}.svg`}
+      alt={name}
+      title={name}
+      width={24}
+      height={24}
+      decoding="async"
+      className="size-6 shrink-0 object-contain"
+    />
   );
 }

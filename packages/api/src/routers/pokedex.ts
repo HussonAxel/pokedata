@@ -245,6 +245,7 @@ const detail = publicProcedure
       context.db
         .select({
           speciesId: species.id,
+          pokemonId: pokemon.id,
           identifier: pokemon.identifier,
           name: speciesName.name,
           evolvesFromSpeciesId: species.evolvesFromSpeciesId,

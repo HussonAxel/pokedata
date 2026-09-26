@@ -46,7 +46,7 @@ const typeList = new Intl.ListFormat("fr", { type: "disjunction" });
 
 function TypeList({ entries }: { entries: Matchup[] }) {
   return (
-    <ul className="flex flex-wrap gap-1.5">
+    <ul className="flex flex-wrap gap-1">
       {entries.map((entry) => (
         <li key={entry.identifier}>
           <TypeBadge identifier={entry.identifier} label={entry.name} />

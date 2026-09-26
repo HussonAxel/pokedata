@@ -42,7 +42,7 @@ export function PokemonPreviewCard({
   };
 
   return (
-    <PreviewCard followCursor="x">
+    <PreviewCard>
       <PreviewCardTrigger
         render={children}
         delay={350}
@@ -77,7 +77,7 @@ function PokemonPreview({ identifier, gen }: { identifier: string; gen: number }
       >
         <span
           aria-hidden="true"
-          className="absolute -top-3 right-3 font-mono text-6xl font-bold tabular-nums opacity-15"
+          className="absolute inset-y-0 right-3 grid place-items-center font-mono text-5xl leading-none font-bold tabular-nums opacity-15"
         >
           {number}
         </span>

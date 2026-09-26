@@ -284,14 +284,25 @@ function Page() {
                   params={{ pokemonId: entry.identifier }}
                   search={{ gen }}
                   aria-current={isCurrent ? "true" : undefined}
-                  className="flex h-full flex-col gap-2 rounded-lg border p-4 hover:bg-muted aria-current:border-primary focus-visible:outline-2 focus-visible:outline-offset-4"
+                  className="flex h-full items-center gap-3 rounded-lg border p-4 hover:bg-muted aria-current:border-primary focus-visible:outline-2 focus-visible:outline-offset-4"
                 >
-                  <span className="text-muted-foreground">
-                    N° {String(entry.speciesId).padStart(4, "0")}
-                  </span>
-                  <span className="font-semibold">{entry.name}</span>
-                  <span className="text-muted-foreground">
-                    {parent ? `Évolution de ${parent.name}` : "Premier stade disponible"}
+                  <img
+                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${entry.pokemonId}.png`}
+                    alt=""
+                    width={64}
+                    height={64}
+                    loading="lazy"
+                    decoding="async"
+                    className="size-16 shrink-0 object-contain"
+                  />
+                  <span className="flex min-w-0 flex-col gap-1">
+                    <span className="text-sm text-muted-foreground">
+                      N° {String(entry.speciesId).padStart(4, "0")}
+                    </span>
+                    <span className="font-semibold">{entry.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {parent ? `Évolution de ${parent.name}` : "Premier stade disponible"}
+                    </span>
                   </span>
                 </Link>
               );
@@ -468,17 +479,18 @@ function Page() {
                           >
                             <span className="font-medium">{ability.name}</span>
                             <span className="text-sm text-muted-foreground">{talentType}</span>
-                            <span className="mt-1 text-xs text-muted-foreground">
-                              Survoler pour les détails
-                            </span>
                           </button>
                         }
                       />
-                      <TooltipContent className="max-w-64 whitespace-normal text-left">
-                        <div className="flex flex-col gap-1">
-                          <span className="font-semibold">{ability.name}</span>
-                          <span className="text-background/75">{talentType}</span>
-                          <span className="text-background/75">
+                      <TooltipContent
+                        className="max-w-64 whitespace-normal rounded-lg border bg-popover p-4 text-left text-sm text-popover-foreground shadow-md [&>svg]:bg-popover [&>svg]:fill-popover"
+                      >
+                        <div className="flex flex-col gap-3">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-semibold leading-tight">{ability.name}</span>
+                            <span className="text-xs text-muted-foreground">{talentType}</span>
+                          </div>
+                          <span className="border-t pt-2 text-muted-foreground">
                             Talent répertorié pour {data.name}.
                           </span>
                         </div>
