@@ -91,6 +91,69 @@ docker compose -f docker-compose.prod.yml run --rm --workdir /app web \
 
 ## Mise à jour du site
 
+La CI/CD est définie dans `.github/workflows/ci.yml`. Chaque push ou fusion sur
+`master` lance les vérifications de format, lint et types, les tests et un build
+Docker sur un runner hébergé par GitHub. Les pull requests exécutent ces mêmes
+contrôles sans déploiement.
+
+Le serveur interroge GitHub chaque minute via un timer systemd utilisateur. Il
+déploie uniquement le dernier commit de `master`, après la réussite de sa CI
+déclenchée par un **push**. Un simple `git pull` local ne déclenche rien.
+Ce choix évite d'installer un runner GitHub sur le serveur d'un dépôt public.
+
+Le déploiement utilise un répertoire dédié `~/.local/share/pokedata-deploy`,
+indépendant du dossier de développement. Il reconstruit l'image avec le lockfile,
+sauvegarde toute la base, exécute les migrations, remplace le web, puis attend
+son healthcheck. Le projet Docker reste `pokedata` et conserve le volume existant.
+PostgreSQL doit déjà être démarré : cette automatisation met à jour une production
+existante, elle ne réalise pas son initialisation.
+
+### Installer ou mettre à jour l'automatisation
+
+Prérequis : Linux avec systemd utilisateur, Docker Compose, Git, GitHub CLI
+authentifié (`gh auth login`), curl, flock et Python 3. Aucun secret de production
+n'est envoyé à GitHub. Le compte système doit pouvoir utiliser Docker.
+
+```bash
+bash scripts/install-auto-deploy.sh "$PWD/.env"
+loginctl show-user "$USER" -p Linger
+# Si Linger=no, activer le démarrage au boot sans session ouverte :
+sudo loginctl enable-linger "$USER"
+```
+
+L'installation copie le `.env` dans `production.env` avec des permissions 600.
+Relancer l'installation après une modification du script de déploiement ou du
+`.env` : ces fichiers locaux ne sont pas remplacés automatiquement par un push.
+
+```bash
+systemctl --user list-timers pokedata-deploy.timer
+journalctl --user -u pokedata-deploy.service -n 100
+cat ~/.local/share/pokedata-deploy/deployed-sha
+# Vérifier immédiatement (la CI doit déjà avoir réussi) :
+systemctl --user start pokedata-deploy.service
+# Suspendre les prochains déploiements :
+systemctl --user stop pokedata-deploy.timer
+```
+
+Une CI en échec laisse la production en place. Un échec de build, sauvegarde ou
+migration empêche le remplacement du web. Une migration partiellement appliquée
+peut toutefois affecter l'ancienne application : privilégier les migrations
+compatibles avec la version précédente. Un healthcheck en échec après remplacement
+est signalé dans le journal ; aucun rollback automatique de code ou de base n'est
+effectué. Le timer réessaie après une minute. Pour intervenir, arrêter le timer
+et le service (`systemctl --user stop pokedata-deploy.timer pokedata-deploy.service`).
+
+Les archives complètes dans `~/.local/share/pokedata-deploy/backups/` et les sources
+dans `releases/` sont conservées ; prévoir leur nettoyage et une copie distante
+des sauvegardes. Pour revenir à une version précédente, pousser un revert sur
+`master` : il repasse par la CI et le déploiement. Les migrations de base ne sont
+pas annulées par un revert Git.
+
+### Mise à jour manuelle de secours
+
+Arrêter le timer avant une intervention manuelle pour éviter deux déploiements
+concurrents. Le dossier de travail doit contenir la version que l'on veut publier.
+
 ```bash
 git pull
 docker compose -f docker-compose.prod.yml --profile tunnel up -d --build
