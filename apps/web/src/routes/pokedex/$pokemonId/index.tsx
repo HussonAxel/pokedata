@@ -482,9 +482,7 @@ function Page() {
                           </button>
                         }
                       />
-                      <TooltipContent
-                        className="max-w-64 whitespace-normal rounded-lg border bg-popover p-4 text-left text-sm text-popover-foreground shadow-md [&>svg]:bg-popover [&>svg]:fill-popover"
-                      >
+                      <TooltipContent variant="card">
                         <div className="flex flex-col gap-3">
                           <div className="flex flex-col gap-0.5">
                             <span className="font-semibold leading-tight">{ability.name}</span>

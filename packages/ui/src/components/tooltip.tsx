@@ -2,6 +2,7 @@
 
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 import { cn } from "@pokedata/ui/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 
 function TooltipProvider({ delay = 0, ...props }: TooltipPrimitive.Provider.Props) {
   return <TooltipPrimitive.Provider data-slot="tooltip-provider" delay={delay} {...props} />;
@@ -15,8 +16,36 @@ function TooltipTrigger({ ...props }: TooltipPrimitive.Trigger.Props) {
   return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
 }
 
+const tooltipContentVariants = cva(
+  "z-50 inline-flex w-fit origin-(--transform-origin) items-center gap-1.5 has-data-[slot=kbd]:pr-1.5 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+  {
+    variants: {
+      variant: {
+        default: "max-w-xs rounded-none bg-foreground px-3 py-1.5 text-xs text-background",
+        /** Contenu riche (titre, détails) : surface de popover plutôt qu'infobulle inversée. */
+        card: "max-w-64 rounded-lg border bg-popover p-4 text-left text-sm whitespace-normal text-popover-foreground shadow-md",
+      },
+    },
+    defaultVariants: { variant: "default" },
+  },
+);
+
+const tooltipArrowVariants = cva(
+  "z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-none data-[side=bottom]:top-1 data-[side=inline-end]:top-1/2! data-[side=inline-end]:-left-1 data-[side=inline-end]:-translate-y-1/2 data-[side=inline-start]:top-1/2! data-[side=inline-start]:-right-1 data-[side=inline-start]:-translate-y-1/2 data-[side=left]:top-1/2! data-[side=left]:-right-1 data-[side=left]:-translate-y-1/2 data-[side=right]:top-1/2! data-[side=right]:-left-1 data-[side=right]:-translate-y-1/2 data-[side=top]:-bottom-2.5",
+  {
+    variants: {
+      variant: {
+        default: "bg-foreground fill-foreground",
+        card: "bg-popover fill-popover",
+      },
+    },
+    defaultVariants: { variant: "default" },
+  },
+);
+
 function TooltipContent({
   className,
+  variant,
   side = "top",
   sideOffset = 4,
   align = "center",
@@ -24,7 +53,8 @@ function TooltipContent({
   children,
   ...props
 }: TooltipPrimitive.Popup.Props &
-  Pick<TooltipPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset">) {
+  Pick<TooltipPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset"> &
+  VariantProps<typeof tooltipContentVariants>) {
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Positioner
@@ -36,14 +66,11 @@ function TooltipContent({
       >
         <TooltipPrimitive.Popup
           data-slot="tooltip-content"
-          className={cn(
-            "z-50 inline-flex w-fit max-w-xs origin-(--transform-origin) items-center gap-1.5 rounded-none bg-foreground px-3 py-1.5 text-xs text-background has-data-[slot=kbd]:pr-1.5 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-            className,
-          )}
+          className={cn(tooltipContentVariants({ variant }), className)}
           {...props}
         >
           {children}
-          <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-none bg-foreground fill-foreground data-[side=bottom]:top-1 data-[side=inline-end]:top-1/2! data-[side=inline-end]:-left-1 data-[side=inline-end]:-translate-y-1/2 data-[side=inline-start]:top-1/2! data-[side=inline-start]:-right-1 data-[side=inline-start]:-translate-y-1/2 data-[side=left]:top-1/2! data-[side=left]:-right-1 data-[side=left]:-translate-y-1/2 data-[side=right]:top-1/2! data-[side=right]:-left-1 data-[side=right]:-translate-y-1/2 data-[side=top]:-bottom-2.5" />
+          <TooltipPrimitive.Arrow className={tooltipArrowVariants({ variant })} />
         </TooltipPrimitive.Popup>
       </TooltipPrimitive.Positioner>
     </TooltipPrimitive.Portal>
