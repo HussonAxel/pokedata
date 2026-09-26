@@ -32,6 +32,7 @@ import {
 import { and, asc, eq, isNull, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import type { Context } from "../context";
 import { publicProcedure } from "../index";
 
 /**
@@ -104,6 +105,42 @@ const reference = publicProcedure
     return { types, generations };
   });
 
+/** Typage d'une variété à une génération, dans l'ordre des emplacements. */
+function selectTypes(
+  db: Context["db"],
+  pokemonId: number,
+  scope: { locale: "fr" | "en"; generationId: number },
+) {
+  return db
+    .select({
+      id: type.id,
+      slot: pokemonType.slot,
+      identifier: type.identifier,
+      name: typeName.name,
+    })
+    .from(pokemonType)
+    .innerJoin(type, eq(type.id, pokemonType.typeId))
+    .innerJoin(typeName, and(eq(typeName.typeId, type.id), eq(typeName.language, scope.locale)))
+    .where(
+      and(eq(pokemonType.pokemonId, pokemonId), eq(pokemonType.generationId, scope.generationId)),
+    )
+    .orderBy(asc(pokemonType.slot));
+}
+
+/** Statistiques de base d'une variété à une génération, dans l'ordre du jeu. */
+function selectStats(db: Context["db"], pokemonId: number, generationId: number) {
+  return db
+    .select({
+      identifier: stat.identifier,
+      baseStat: pokemonStat.baseStat,
+      effort: pokemonStat.effort,
+    })
+    .from(pokemonStat)
+    .innerJoin(stat, eq(stat.id, pokemonStat.statId))
+    .where(and(eq(pokemonStat.pokemonId, pokemonId), eq(pokemonStat.generationId, generationId)))
+    .orderBy(asc(pokemonStat.statId));
+}
+
 /** Fiche d'une variété, pour une génération donnée. */
 const detail = publicProcedure
   .input(z.object({ identifier: z.string().min(1).max(80), locale, generationId }))
@@ -158,6 +195,7 @@ const detail = publicProcedure
       varieties,
       evolutionFamily,
       efficacy,
+      offensiveEfficacy,
       availableGenerations,
       names,
       descriptions,
@@ -167,38 +205,8 @@ const detail = publicProcedure
       evolutionConditions,
       encounters,
     ] = await Promise.all([
-      context.db
-        .select({
-          id: type.id,
-          slot: pokemonType.slot,
-          identifier: type.identifier,
-          name: typeName.name,
-        })
-        .from(pokemonType)
-        .innerJoin(type, eq(type.id, pokemonType.typeId))
-        .innerJoin(typeName, and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)))
-        .where(
-          and(
-            eq(pokemonType.pokemonId, entry.id),
-            eq(pokemonType.generationId, input.generationId),
-          ),
-        )
-        .orderBy(asc(pokemonType.slot)),
-      context.db
-        .select({
-          identifier: stat.identifier,
-          baseStat: pokemonStat.baseStat,
-          effort: pokemonStat.effort,
-        })
-        .from(pokemonStat)
-        .innerJoin(stat, eq(stat.id, pokemonStat.statId))
-        .where(
-          and(
-            eq(pokemonStat.pokemonId, entry.id),
-            eq(pokemonStat.generationId, input.generationId),
-          ),
-        )
-        .orderBy(asc(pokemonStat.statId)),
+      selectTypes(context.db, entry.id, input),
+      selectStats(context.db, entry.id, input.generationId),
       context.db
         .select({
           id: pokemonForm.id,
@@ -276,6 +284,25 @@ const detail = publicProcedure
           pokemonType,
           and(
             eq(pokemonType.typeId, typeEfficacy.targetTypeId),
+            eq(pokemonType.pokemonId, entry.id),
+            eq(pokemonType.generationId, input.generationId),
+          ),
+        )
+        .where(eq(typeEfficacy.generationId, input.generationId))
+        .orderBy(asc(type.id)),
+      context.db
+        .select({
+          identifier: type.identifier,
+          name: typeName.name,
+          factor: typeEfficacy.factor,
+        })
+        .from(typeEfficacy)
+        .innerJoin(type, eq(type.id, typeEfficacy.targetTypeId))
+        .innerJoin(typeName, and(eq(typeName.typeId, type.id), eq(typeName.language, input.locale)))
+        .innerJoin(
+          pokemonType,
+          and(
+            eq(pokemonType.typeId, typeEfficacy.damageTypeId),
             eq(pokemonType.pokemonId, entry.id),
             eq(pokemonType.generationId, input.generationId),
           ),
@@ -427,11 +454,27 @@ const detail = publicProcedure
       });
     }
 
+    // En attaque, chaque type du Pokémon frappe séparément : contre une cible
+    // de type unique, seul le meilleur des deux multiplicateurs compte.
+    const offensiveMatchups = new Map<
+      string,
+      { identifier: string; name: string; multiplier: number }
+    >();
+    for (const row of offensiveEfficacy) {
+      const current = offensiveMatchups.get(row.identifier);
+      offensiveMatchups.set(row.identifier, {
+        identifier: row.identifier,
+        name: row.name,
+        multiplier: Math.max(current?.multiplier ?? 0, row.factor / 100),
+      });
+    }
+
     return {
       ...entry,
       varieties,
       evolutionFamily,
       matchups: [...matchups.values()],
+      offensiveMatchups: [...offensiveMatchups.values()],
       availableGenerations,
       names,
       descriptions,
@@ -445,6 +488,52 @@ const detail = publicProcedure
       stats,
       statTotal: stats.reduce((total, line) => total + line.baseStat, 0),
       forms,
+    };
+  });
+
+/**
+ * Aperçu d'une variété pour les cartes au survol : identité, typage et
+ * statistiques de la génération, sans aucune des longues listes de la fiche.
+ */
+const preview = publicProcedure
+  .input(z.object({ identifier: z.string().min(1).max(80), locale, generationId }))
+  .handler(async ({ context, input }) => {
+    const [entry] = await context.db
+      .select({
+        id: pokemon.id,
+        identifier: pokemon.identifier,
+        dexNumber: species.id,
+        name: speciesName.name,
+        genus: speciesName.genus,
+      })
+      .from(pokemon)
+      .innerJoin(species, eq(species.id, pokemon.speciesId))
+      .innerJoin(
+        speciesName,
+        and(eq(speciesName.speciesId, species.id), eq(speciesName.language, input.locale)),
+      )
+      .where(eq(pokemon.identifier, input.identifier))
+      .limit(1);
+
+    if (!entry) {
+      return null;
+    }
+
+    const [types, stats] = await Promise.all([
+      selectTypes(context.db, entry.id, input),
+      selectStats(context.db, entry.id, input.generationId),
+    ]);
+
+    // Même règle que la fiche : sans typage à cette génération, la variété n'existait pas.
+    if (types.length === 0) {
+      return null;
+    }
+
+    return {
+      ...entry,
+      types,
+      stats,
+      statTotal: stats.reduce((total, line) => total + line.baseStat, 0),
     };
   });
 
@@ -496,4 +585,4 @@ const typeChart = publicProcedure
     return { generationId: input.generationId, types, factors };
   });
 
-export const pokedexRouter = { index, reference, detail, typeChart };
+export const pokedexRouter = { index, reference, detail, preview, typeChart };

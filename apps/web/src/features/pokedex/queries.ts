@@ -34,6 +34,13 @@ export function pokedexDetailOptions(scope: CatalogScope & { identifier: string 
   });
 }
 
+export function pokedexPreviewOptions(scope: CatalogScope & { identifier: string }) {
+  return orpc.pokedex.preview.queryOptions({
+    input: scope,
+    staleTime: CATALOG_STALE_TIME,
+  });
+}
+
 export function pokedexTypeChartOptions(scope: CatalogScope) {
   return orpc.pokedex.typeChart.queryOptions({
     input: scope,

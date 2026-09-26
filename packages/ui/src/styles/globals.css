@@ -64,6 +64,35 @@
     white-space: normal;
   }
 
+  .motion-preview-card-follow {
+    translate: var(--motion-preview-card-x, 0) var(--motion-preview-card-y, 0);
+  }
+
+  .motion-tabs-viewport {
+    border-radius: inherit;
+    mask-image: var(--motion-tabs-mask, none);
+  }
+
+  .motion-tabs-fade-left {
+    border-top-left-radius: inherit;
+    border-bottom-left-radius: inherit;
+    backdrop-filter: blur(2px);
+    mask-image: linear-gradient(to right, black, transparent);
+  }
+
+  .motion-tabs-fade-right {
+    border-top-right-radius: inherit;
+    border-bottom-right-radius: inherit;
+    backdrop-filter: blur(2px);
+    mask-image: linear-gradient(to left, black, transparent);
+  }
+
+  .motion-tabs-label {
+    gap: inherit;
+    padding: inherit;
+    clip-path: var(--motion-tabs-clip);
+  }
+
   .number-ticker-digit {
     width: 1ch;
     height: 1.1em;

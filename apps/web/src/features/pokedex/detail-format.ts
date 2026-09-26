@@ -8,6 +8,17 @@ export const STAT_LABELS: Record<string, string> = {
   special: "Spécial",
 };
 
+/** Libellés courts, pour les espaces étroits comme les cartes d'aperçu. */
+export const STAT_SHORT_LABELS: Record<string, string> = {
+  hp: "PV",
+  attack: "Att.",
+  defense: "Déf.",
+  "special-attack": "Att. Spé.",
+  "special-defense": "Déf. Spé.",
+  speed: "Vit.",
+  special: "Spé.",
+};
+
 // Identifiants de pokemon_move_methods dans le catalogue PokéAPI.
 const MOVE_METHOD_LABELS: Record<number, string> = {
   1: "Montée de niveau",

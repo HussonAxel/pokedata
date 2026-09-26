@@ -22,6 +22,11 @@ const TYPE_CLASSES: Record<string, string> = {
   stellar: "bg-teal-500/10 text-teal-700 dark:text-teal-300",
 };
 
+/** Teinte d'un type (fond léger, encre lisible), pour les surfaces hors badge. */
+export function typeTint(identifier: string) {
+  return TYPE_CLASSES[identifier] ?? "bg-muted text-muted-foreground";
+}
+
 export function TypeBadge({
   identifier,
   label,

@@ -16,12 +16,13 @@ import {
   formatEvolutionCondition,
   formatMeasurement,
   formatMoveMethod,
-  formatNumber,
 } from "@/features/pokedex/detail-format";
 import { z } from "zod";
 
+import { PokemonPreviewCard } from "@/features/pokedex/pokemon-preview-card";
 import { pokedexDetailOptions } from "@/features/pokedex/queries";
 import { TypeBadge } from "@/features/pokedex/type-badge";
+import { TypeRelations } from "@/features/pokedex/type-relations";
 
 const LATEST_GENERATION = 9;
 
@@ -55,7 +56,7 @@ export const Route = createFileRoute("/pokedex/$pokemonId/")({
 const SECTIONS = [
   ["identite", "Identité"],
   ["statistiques", "Statistiques"],
-  ["sensibilites", "Sensibilités"],
+  ["relations", "Relations de types"],
   ["evolutions", "Évolutions"],
   ["formes", "Formes"],
   ["entrainement", "Entraînement"],
@@ -117,15 +118,6 @@ function Page() {
   const currentVariety = data.varieties.find((entry) => entry.id === data.id);
   const effort = data.stats.filter((line) => line.effort > 0);
   const familyById = new Map(data.evolutionFamily.map((entry) => [entry.speciesId, entry]));
-  const matchupGroups = [
-    { title: "Faiblesses", entries: data.matchups.filter((entry) => entry.multiplier > 1) },
-    {
-      title: "Résistances",
-      entries: data.matchups.filter((entry) => entry.multiplier > 0 && entry.multiplier < 1),
-    },
-    { title: "Immunités", entries: data.matchups.filter((entry) => entry.multiplier === 0) },
-  ];
-  const neutralMatchups = data.matchups.filter((entry) => entry.multiplier === 1);
 
   return (
     <main
@@ -255,52 +247,16 @@ function Page() {
         </DetailSection>
 
         <DetailSection
-          id="sensibilites"
-          title="Sensibilités défensives"
-          description="Multiplicateurs des dégâts reçus selon les types. Hors talents, objets et effets de combat."
+          id="relations"
+          title="Relations de types"
+          description={`Génération ${gen} · Multiplicateurs d’efficacité entre types. Hors talents, objets et effets de combat.`}
         >
-          <div className="flex flex-col gap-4">
-            <div className="grid gap-3 sm:grid-cols-3">
-              {matchupGroups.map((group) => (
-                <section key={group.title} className="flex flex-col gap-3 rounded-lg border p-4">
-                  <h3 className="font-medium">{group.title}</h3>
-                  {group.entries.length ? (
-                    <ul className="flex flex-wrap gap-2">
-                      {group.entries.map((entry) => (
-                        <li key={entry.identifier} className="flex items-center gap-2">
-                          <TypeBadge identifier={entry.identifier} label={entry.name} />
-                          <span className="text-sm font-semibold tabular-nums">
-                            ×{formatNumber(entry.multiplier)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Aucun type</p>
-                  )}
-                </section>
-              ))}
-            </div>
-            <details className="rounded-lg border p-4">
-              <summary className="cursor-pointer font-medium marker:text-muted-foreground">
-                Types neutres{" "}
-                <span className="ml-1 text-sm text-muted-foreground">
-                  ({neutralMatchups.length})
-                </span>
-              </summary>
-              {neutralMatchups.length ? (
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {neutralMatchups.map((entry) => (
-                    <li key={entry.identifier}>
-                      <TypeBadge identifier={entry.identifier} label={entry.name} />
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-3 text-sm text-muted-foreground">Aucun type neutre</p>
-              )}
-            </details>
-          </div>
+          <TypeRelations
+            types={data.types}
+            defense={data.matchups}
+            offense={data.offensiveMatchups}
+            gen={gen}
+          />
         </DetailSection>
       </div>
 
@@ -316,23 +272,34 @@ function Page() {
                 entry.evolvesFromSpeciesId === null
                   ? undefined
                   : familyById.get(entry.evolvesFromSpeciesId);
+              const isCurrent = entry.speciesId === data.speciesId;
+              const link = (
+                <Link
+                  to="/pokedex/$pokemonId"
+                  params={{ pokemonId: entry.identifier }}
+                  search={{ gen }}
+                  aria-current={isCurrent ? "true" : undefined}
+                  className="flex h-full flex-col gap-2 rounded-lg border p-4 hover:bg-muted aria-current:border-primary focus-visible:outline-2 focus-visible:outline-offset-4"
+                >
+                  <span className="text-muted-foreground">
+                    N° {String(entry.speciesId).padStart(4, "0")}
+                  </span>
+                  <span className="font-semibold">{entry.name}</span>
+                  <span className="text-muted-foreground">
+                    {parent ? `Évolution de ${parent.name}` : "Premier stade disponible"}
+                  </span>
+                </Link>
+              );
               return (
                 <li key={entry.speciesId}>
-                  <Link
-                    to="/pokedex/$pokemonId"
-                    params={{ pokemonId: entry.identifier }}
-                    search={{ gen }}
-                    aria-current={entry.speciesId === data.speciesId ? "true" : undefined}
-                    className="flex h-full flex-col gap-2 rounded-lg border p-4 hover:bg-muted aria-current:border-primary focus-visible:outline-2 focus-visible:outline-offset-4"
-                  >
-                    <span className="text-muted-foreground">
-                      N° {String(entry.speciesId).padStart(4, "0")}
-                    </span>
-                    <span className="font-semibold">{entry.name}</span>
-                    <span className="text-muted-foreground">
-                      {parent ? `Évolution de ${parent.name}` : "Premier stade disponible"}
-                    </span>
-                  </Link>
+                  {/* La fiche affichée n'a pas besoin de son propre aperçu. */}
+                  {isCurrent ? (
+                    link
+                  ) : (
+                    <PokemonPreviewCard identifier={entry.identifier} gen={gen}>
+                      {link}
+                    </PokemonPreviewCard>
+                  )}
                 </li>
               );
             })}
