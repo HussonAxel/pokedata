@@ -1003,7 +1003,7 @@ function GridCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -5 }}
       transition={{ duration: 0.18 }}
-      className="relative min-w-0 bg-card p-3 ring-1 ring-foreground/10"
+      className="relative min-w-0 bg-card p-3 ring-1 ring-border"
     >
       {children}
       {node.starred ? (
