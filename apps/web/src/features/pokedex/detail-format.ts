@@ -58,8 +58,35 @@ export function formatForm(identifier: string) {
   return identifier.replaceAll("-", " ");
 }
 
+const REGION_LABELS: Record<string, string> = {
+  alola: "d’Alola",
+  galar: "de Galar",
+  hisui: "de Hisui",
+  paldea: "de Paldea",
+};
+
+/** Mention de forme à placer après un nom : « de Galar », « (mega) ». Vide pour la variété par défaut. */
+export function formatFormLabel(suffix: string) {
+  if (!suffix) return "";
+
+  return REGION_LABELS[suffix] ?? `(${formatForm(suffix)})`;
+}
+
+/** Nom d'une variété : « Flagadoss de Galar ». */
+export function formatVarietyName(name: string, suffix: string) {
+  return [name, formatFormLabel(suffix)].filter(Boolean).join(" ");
+}
+
+const TIME_OF_DAY_LABELS: Record<string, string> = {
+  day: "de jour",
+  night: "de nuit",
+  dusk: "au crépuscule",
+};
+
 export function formatEvolutionCondition(condition: {
   triggerName: string | null;
+  triggerItem: string | null;
+  heldItem: string | null;
   minimumLevel: number | null;
   minimumHappiness: number | null;
   minimumBeauty: number | null;
@@ -70,12 +97,13 @@ export function formatEvolutionCondition(condition: {
 }) {
   return (
     [
-      condition.triggerName,
+      condition.triggerItem ? `Objet : ${condition.triggerItem}` : condition.triggerName,
+      condition.heldItem ? `en tenant ${condition.heldItem}` : null,
       condition.minimumLevel !== null ? `niveau ${condition.minimumLevel}` : null,
       condition.minimumHappiness !== null ? `bonheur ≥ ${condition.minimumHappiness}` : null,
       condition.minimumBeauty !== null ? `beauté ≥ ${condition.minimumBeauty}` : null,
       condition.minimumAffection !== null ? `affection ≥ ${condition.minimumAffection}` : null,
-      condition.timeOfDay ? condition.timeOfDay : null,
+      condition.timeOfDay ? (TIME_OF_DAY_LABELS[condition.timeOfDay] ?? condition.timeOfDay) : null,
       condition.needsOverworldRain ? "sous la pluie" : null,
       condition.turnUpsideDown ? "console retournée" : null,
     ]
