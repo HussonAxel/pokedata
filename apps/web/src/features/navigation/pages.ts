@@ -625,3 +625,11 @@ export const exampleParams = {
   classeurId: "exemple",
   chasseId: "exemple",
 };
+
+type Page = (typeof pages)[number];
+
+/** Chemin sans paramètre dynamique : une page qu'on peut lister et ouvrir telle quelle. */
+export type StaticPage = Extract<Page, { path: Exclude<Page["path"], `${string}$${string}`> }>;
+
+/** Pages proposées dans la deuxième colonne : tout ce qui s'ouvre sans identifiant. */
+export const staticPages = pages.filter((page): page is StaticPage => !page.path.includes("$"));

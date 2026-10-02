@@ -6,14 +6,10 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createMiddleware } from "@tanstack/react-start";
 import { evlogErrorHandler } from "evlog/nitro/v3";
 import { ThemeProvider } from "next-themes";
-import { AnimateView } from "motion/react-animate-view";
-import { useReducedMotion } from "motion/react";
-
-import FloatingDockMenu from "@pokedata/ui/components/ui/FloatingDockMenu";
 
 import type { orpc } from "@/utils/orpc";
 
-import Header from "../components/header";
+import { SiteShell } from "@/features/navigation/site-shell";
 
 import appCss from "../index.css?url";
 export interface RouterAppContext {
@@ -64,8 +60,6 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument() {
-  const prefersReducedMotion = useReducedMotion();
-
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
@@ -73,17 +67,9 @@ function RootDocument() {
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="" enableSystem>
-          <div className="grid min-h-svh grid-rows-[auto_1fr]">
-            <Header />
-            {prefersReducedMotion ? (
-              <Outlet />
-            ) : (
-              <AnimateView transition={{ duration: 0.2, ease: "easeInOut" }}>
-                <Outlet />
-              </AnimateView>
-            )}
-            <FloatingDockMenu />
-          </div>
+          <SiteShell>
+            <Outlet />
+          </SiteShell>
           <Toaster richColors />
           {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-left" />}
           {import.meta.env.DEV && (

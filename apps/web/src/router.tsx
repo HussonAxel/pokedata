@@ -11,6 +11,8 @@ export const getRouter = () => {
   const router = createTanStackRouter({
     routeTree,
     scrollRestoration: true,
+    // Le contenu défile dans son propre panneau, pas dans la fenêtre.
+    scrollToTopSelectors: ['[data-scroll-restoration-id="content"]'],
     // Le chargement d'une destination démarre au survol ou au début d'un appui,
     // avant le clic. Combiné au cache Query, la navigation paraît instantanée.
     defaultPreload: "intent",
@@ -33,5 +35,13 @@ export const getRouter = () => {
 declare module "@tanstack/react-router" {
   interface Register {
     router: ReturnType<typeof getRouter>;
+  }
+
+  /** Ce qu'une route demande à la coquille de colonnes (voir `SiteShell`). */
+  interface StaticDataRouteOption {
+    /** Liste d'éléments à afficher en troisième colonne. */
+    itemsColumn?: "pokemon";
+    /** La route est le détail d'un élément de cette liste. */
+    detail?: boolean;
   }
 }
