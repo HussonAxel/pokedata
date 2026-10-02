@@ -6,6 +6,7 @@ import {
   eggGroupName,
   encounter,
   evolutionTriggerName,
+  itemName,
   location,
   locationArea,
   locationName,
@@ -29,11 +30,13 @@ import {
   versionGroup,
   version,
 } from "@pokedata/db/schema/catalog";
-import { and, asc, eq, isNull, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 import type { Context } from "../context";
 import { abilityDescription } from "../ability-description";
+import { conditionsForForm, formSuffix, resolveEvolutionFamily } from "../evolution-family";
 import { publicProcedure } from "../index";
 
 /**
@@ -143,6 +146,10 @@ function selectStats(db: Context["db"], pokemonId: number, generationId: number)
 }
 
 /** Fiche d'une variété, pour une génération donnée. */
+// Une condition d'évolution peut viser deux objets (utilisé, tenu) : deux jointures sur la même table.
+const triggerItemName = alias(itemName, "trigger_item_name");
+const heldItemName = alias(itemName, "held_item_name");
+
 const detail = publicProcedure
   .input(z.object({ identifier: z.string().min(1).max(80), locale, generationId }))
   .handler(async ({ context, input }) => {
@@ -151,6 +158,8 @@ const detail = publicProcedure
         id: pokemon.id,
         identifier: pokemon.identifier,
         dexNumber: species.id,
+        speciesIdentifier: species.identifier,
+        isDefault: pokemon.isDefault,
         name: speciesName.name,
         genus: speciesName.genus,
         height: pokemon.height,
@@ -194,7 +203,7 @@ const detail = publicProcedure
       stats,
       forms,
       varieties,
-      evolutionFamily,
+      familyCandidates,
       efficacy,
       offensiveEfficacy,
       availableGenerations,
@@ -243,21 +252,26 @@ const detail = publicProcedure
         )
         .where(eq(pokemon.speciesId, entry.speciesId))
         .orderBy(asc(pokemon.order), asc(pokemon.id)),
+      // Toutes les variétés typées à cette génération, pas seulement celles par défaut :
+      // `resolveEvolutionFamily` choisit ensuite celle qui suit la forme consultée.
       context.db
         .select({
           speciesId: species.id,
-          pokemonId: pokemon.id,
-          identifier: pokemon.identifier,
+          speciesIdentifier: species.identifier,
+          speciesGeneration: species.generationId,
+          speciesOrder: species.order,
           name: speciesName.name,
           evolvesFromSpeciesId: species.evolvesFromSpeciesId,
-          introducedIn: species.generationId,
+          pokemonId: pokemon.id,
+          identifier: pokemon.identifier,
+          isDefault: pokemon.isDefault,
         })
         .from(species)
         .innerJoin(
           speciesName,
           and(eq(speciesName.speciesId, species.id), eq(speciesName.language, input.locale)),
         )
-        .innerJoin(pokemon, and(eq(pokemon.speciesId, species.id), eq(pokemon.isDefault, true)))
+        .innerJoin(pokemon, eq(pokemon.speciesId, species.id))
         .innerJoin(
           pokemonType,
           and(
@@ -271,7 +285,7 @@ const detail = publicProcedure
             ? eq(species.id, entry.speciesId)
             : eq(species.evolutionChainId, entry.evolutionChainId),
         )
-        .orderBy(asc(species.order), asc(species.id)),
+        .orderBy(asc(species.order), asc(species.id), asc(pokemon.order), asc(pokemon.id)),
       context.db
         .select({
           identifier: type.identifier,
@@ -395,6 +409,9 @@ const detail = publicProcedure
         .select({
           evolvedSpeciesId: pokemonEvolution.evolvedSpeciesId,
           triggerId: pokemonEvolution.triggerId,
+          hasTriggerItem: sql<boolean>`${pokemonEvolution.triggerItemId} is not null`,
+          triggerItem: triggerItemName.name,
+          heldItem: heldItemName.name,
           triggerName: evolutionTriggerName.name,
           minimumLevel: pokemonEvolution.minimumLevel,
           minimumHappiness: pokemonEvolution.minimumHappiness,
@@ -406,13 +423,38 @@ const detail = publicProcedure
         })
         .from(pokemonEvolution)
         .leftJoin(
+          triggerItemName,
+          and(
+            eq(triggerItemName.itemId, pokemonEvolution.triggerItemId),
+            eq(triggerItemName.language, input.locale),
+          ),
+        )
+        .leftJoin(
+          heldItemName,
+          and(
+            eq(heldItemName.itemId, pokemonEvolution.heldItemId),
+            eq(heldItemName.language, input.locale),
+          ),
+        )
+        .leftJoin(
           evolutionTriggerName,
           and(
             eq(evolutionTriggerName.triggerId, pokemonEvolution.triggerId),
             eq(evolutionTriggerName.language, input.locale),
           ),
         )
-        .where(eq(pokemonEvolution.evolvedSpeciesId, entry.speciesId)),
+        .where(
+          entry.evolutionChainId === null
+            ? eq(pokemonEvolution.evolvedSpeciesId, entry.speciesId)
+            : inArray(
+                pokemonEvolution.evolvedSpeciesId,
+                context.db
+                  .select({ id: species.id })
+                  .from(species)
+                  .where(eq(species.evolutionChainId, entry.evolutionChainId)),
+              ),
+        )
+        .orderBy(asc(pokemonEvolution.id)),
       context.db
         .select({
           locationId: location.id,
@@ -472,8 +514,28 @@ const detail = publicProcedure
       });
     }
 
+    // Chaque stade porte les conditions qui y mènent, pour tracer l'arbre d'évolution.
+    const evolutionFamily = resolveEvolutionFamily(familyCandidates, entry).map((stage) => {
+      const suffix = formSuffix(stage);
+
+      return {
+        speciesId: stage.speciesId,
+        pokemonId: stage.pokemonId,
+        identifier: stage.identifier,
+        name: stage.name,
+        formSuffix: suffix,
+        evolvesFromSpeciesId: stage.evolvesFromSpeciesId,
+        introducedIn: stage.speciesGeneration,
+        conditions: conditionsForForm(
+          evolutionConditions.filter((condition) => condition.evolvedSpeciesId === stage.speciesId),
+          suffix,
+        ),
+      };
+    });
+
     return {
       ...entry,
+      formSuffix: formSuffix(entry),
       varieties,
       evolutionFamily,
       matchups: [...matchups.values()],
@@ -484,7 +546,6 @@ const detail = publicProcedure
       abilities,
       moves,
       eggGroups,
-      evolutionConditions,
       encounters,
       generationId: input.generationId,
       types,
