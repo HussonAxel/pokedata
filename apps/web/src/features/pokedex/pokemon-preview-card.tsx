@@ -11,10 +11,8 @@ import {
   PreviewCardTrigger,
 } from "@pokedata/ui/components/preview-card";
 import { pokedexPreviewOptions } from "@/features/pokedex/queries";
+import { artworkUrl, preloadImage } from "@/features/pokedex/sprites";
 import { TypeBadge, typeTint } from "@/features/pokedex/type-badge";
-
-const artworkUrl = (id: number) =>
-  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 
 /**
  * Donne à un lien (ou à tout autre élément) un aperçu du Pokémon au survol.
@@ -36,7 +34,7 @@ export function PokemonPreviewCard({
   const warm = () => {
     void queryClient.prefetchQuery(options).then(() => {
       const data = queryClient.getQueryData(options.queryKey);
-      if (data) new Image().src = artworkUrl(data.id);
+      if (data) preloadImage(artworkUrl(data.id));
     });
   };
 
@@ -62,7 +60,7 @@ export function PokemonPreviewCard({
   );
 }
 
-function PokemonPreview({ identifier, gen }: { identifier: string; gen: number }) {
+export function PokemonPreview({ identifier, gen }: { identifier: string; gen: number }) {
   const { data, isPending } = useQuery(
     pokedexPreviewOptions({ identifier, locale: "fr", generationId: gen }),
   );
