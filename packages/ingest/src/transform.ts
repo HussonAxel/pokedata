@@ -19,6 +19,8 @@ const DOMAIN_TABLES = [
   "location",
   "pokemon_evolution",
   "evolution_trigger_name",
+  "item_name",
+  "item",
   "species_flavor_text",
   "pokemon_egg_group",
   "egg_group_name",
@@ -278,6 +280,16 @@ const STEPS: { label: string; sql: string }[] = [
     sql: `insert into evolution_trigger_name (trigger_id, language, name)
       select p.evolution_trigger_id::int, l.code, p.name from staging.evolution_trigger_prose p
       join (values ${LANGUAGES}) l(id, code) on l.id = p.local_language_id::int`,
+  },
+  {
+    label: "item",
+    sql: `insert into item (id, identifier) select id::int, identifier from staging.items`,
+  },
+  {
+    label: "item_name",
+    sql: `insert into item_name (item_id, language, name)
+      select n.item_id::int, l.code, n.name from staging.item_names n
+      join (values ${LANGUAGES}) l(id, code) on l.id = n.local_language_id::int`,
   },
   {
     label: "pokemon_evolution",

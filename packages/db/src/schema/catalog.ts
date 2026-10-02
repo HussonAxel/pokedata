@@ -388,6 +388,24 @@ export const evolutionTriggerName = pgTable(
   (table) => [primaryKey({ columns: [table.triggerId, table.language] })],
 );
 
+/** Objet : pierre d'évolution, objet tenu, Bracelet Galanoa. Référencé par les conditions d'évolution. */
+export const item = pgTable("item", {
+  id: integer("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+});
+
+export const itemName = pgTable(
+  "item_name",
+  {
+    itemId: integer("item_id")
+      .notNull()
+      .references(() => item.id),
+    language: text("language").notNull(),
+    name: text("name").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.itemId, table.language] })],
+);
+
 export const location = pgTable("location", {
   id: integer("id").primaryKey(),
   identifier: text("identifier").notNull(),
