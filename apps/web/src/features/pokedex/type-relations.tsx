@@ -21,11 +21,13 @@ const DEFENSE: Relation[] = [
   { multiplier: 0, symbol: "×0", label: "Immunité" },
 ];
 
-/** Contre une cible de type unique, une attaque ne dépasse jamais ×2 ni ne descend à ×¼. */
+/** Même grille en attaque ; ×4 et ×¼ restent vides contre une cible de type unique. */
 const OFFENSE: Relation[] = [
+  { multiplier: 4, symbol: "×4", label: "Très efficace" },
   { multiplier: 2, symbol: "×2", label: "Très efficace" },
   { multiplier: 1, symbol: "×1", label: "Neutre" },
   { multiplier: 0.5, symbol: "×½", label: "Peu efficace" },
+  { multiplier: 0.25, symbol: "×¼", label: "Peu efficace" },
   { multiplier: 0, symbol: "×0", label: "Sans effet" },
 ];
 
@@ -58,17 +60,17 @@ function TypeList({ entries }: { entries: Matchup[] }) {
 
 function RelationList({ relations, matchups }: { relations: Relation[]; matchups: Matchup[] }) {
   return (
-    <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4">
+    <dl className="row-span-6 grid grid-cols-[9rem_minmax(0,1fr)] grid-rows-subgrid gap-x-4">
       {relations.map((relation) => {
         const entries = matchups.filter((entry) => entry.multiplier === relation.multiplier);
         return (
           <div
             key={relation.multiplier}
-            className="col-span-full grid grid-cols-subgrid items-baseline border-b py-2 last:border-b-0"
+            className="col-span-full grid grid-cols-subgrid items-start border-b py-2 last:border-b-0"
           >
             {/* Largeur du plus long libellé (« Très efficace ») : les types ne
                 sautent pas d'une colonne à l'autre en changeant d'onglet. */}
-            <dt className="flex min-w-36 items-baseline gap-2">
+            <dt className="flex items-baseline gap-2">
               <span
                 className={`inline-grid h-6 min-w-8 place-items-center px-1 font-mono text-xs font-semibold ${MULTIPLIER_CLASSES[relation.multiplier]}`}
               >
@@ -125,17 +127,31 @@ export function TypeRelations({
             En attaque
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="defense">
-          <p className="text-muted-foreground">Dégâts reçus selon le type de l’attaque adverse.</p>
-          <RelationList relations={DEFENSE} matchups={defense} />
-        </TabsContent>
-        <TabsContent value="offense">
-          <p className="text-muted-foreground">
-            {types.length > 1 ? "Meilleur multiplicateur" : "Multiplicateur"} des attaques{" "}
-            {typeList.format(types.map((entry) => entry.name))}, contre une cible d’un seul type.
-          </p>
-          <RelationList relations={OFFENSE} matchups={offense} />
-        </TabsContent>
+        {/* Les panneaux partagent leurs lignes : textes et badges gardent leur
+            place, même si une liste se replie sur plusieurs lignes sur mobile. */}
+        <div className="mt-4 grid grid-rows-[repeat(7,auto)]">
+          <TabsContent
+            value="defense"
+            preserveLayout
+            className="col-start-1 row-span-7 row-start-1 grid grid-rows-subgrid"
+          >
+            <p className="text-muted-foreground">
+              Dégâts reçus selon le type de l’attaque adverse.
+            </p>
+            <RelationList relations={DEFENSE} matchups={defense} />
+          </TabsContent>
+          <TabsContent
+            value="offense"
+            preserveLayout
+            className="col-start-1 row-span-7 row-start-1 grid grid-rows-subgrid"
+          >
+            <p className="text-muted-foreground">
+              {types.length > 1 ? "Meilleur multiplicateur" : "Multiplicateur"} des attaques{" "}
+              {typeList.format(types.map((entry) => entry.name))}, contre une cible d’un seul type.
+            </p>
+            <RelationList relations={OFFENSE} matchups={offense} />
+          </TabsContent>
+        </div>
       </Tabs>
       <Link
         to="/encyclopedie/types"

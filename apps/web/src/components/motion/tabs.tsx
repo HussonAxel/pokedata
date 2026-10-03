@@ -463,10 +463,13 @@ export function TabsContent({
   value,
   children,
   className,
+  preserveLayout = false,
 }: {
   value: string;
   children: ReactNode;
   className?: string;
+  /** Keep panels in a shared grid, without remounting or an entrance animation. */
+  preserveLayout?: boolean;
 }) {
   const { value: current, layoutId, switched } = useTabs();
   const reduce = useReducedMotion();
@@ -476,6 +479,18 @@ export function TabsContent({
     role: "tabpanel",
     "aria-labelledby": tabId(layoutId, value),
   } as const;
+  if (preserveLayout) {
+    return (
+      <div
+        {...aria}
+        aria-hidden={!active}
+        inert={!active}
+        className={cn(className, !active && "invisible")}
+      >
+        {children}
+      </div>
+    );
+  }
   // Inactive panels stay mounted but hidden, so their content (e.g. source
   // code) is present in the server-rendered HTML for crawlers and assistive
   // tech, instead of being dropped from the DOM.

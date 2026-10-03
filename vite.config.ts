@@ -1,6 +1,7 @@
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
+  resolve: { tsconfigPaths: true },
   lint: {
     jsPlugins: ["@shadcn/lint"],
     ignorePatterns: [
