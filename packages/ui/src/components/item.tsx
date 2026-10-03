@@ -53,6 +53,7 @@ const itemVariants = cva(
         xs: "gap-2 px-2.5 py-2 in-data-[slot=dropdown-menu-content]:p-0",
         row: "h-10 flex-nowrap gap-3 px-3 py-0 text-sm",
         "row-lg": "h-12 flex-nowrap gap-3 px-3 py-0 text-sm",
+        "row-xl": "h-20 flex-nowrap gap-4 rounded-xl px-3 py-0 text-sm",
       },
     },
     defaultVariants: {
@@ -123,7 +124,7 @@ function ItemContent({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="item-content"
       className={cn(
-        "flex flex-1 flex-col gap-1 group-data-[size=xs]/item:gap-0 [&+[data-slot=item-content]]:flex-none",
+        "flex flex-1 flex-col gap-1 group-data-[size=xs]/item:gap-0 group-data-[size=row-xl]/item:gap-2 [&+[data-slot=item-content]]:flex-none",
         className,
       )}
       {...props}
@@ -136,7 +137,7 @@ function ItemTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="item-title"
       className={cn(
-        "line-clamp-1 flex w-fit items-center gap-2 text-sm font-medium underline-offset-4",
+        "line-clamp-1 flex w-fit items-center gap-2 text-sm font-medium underline-offset-4 group-data-[size=row-xl]/item:text-base group-data-[size=row-xl]/item:font-semibold",
         className,
       )}
       {...props}

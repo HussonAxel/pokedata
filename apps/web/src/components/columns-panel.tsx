@@ -103,8 +103,8 @@ export function ColumnBody({ className, children, ...props }: ComponentProps<typ
   );
 }
 
-/** Hauteur de chaque taille de ligne (voir `row` et `row-lg` dans `item.tsx`). */
-const ROW_HEIGHT = { row: 40, "row-lg": 48 } as const;
+/** Hauteur de chaque taille de ligne (voir les variantes `row` dans `item.tsx`). */
+const ROW_HEIGHT = { row: 40, "row-lg": 48, "row-xl": 80 } as const;
 
 type RowSize = keyof typeof ROW_HEIGHT;
 
@@ -120,6 +120,7 @@ const ColumnListContext = createContext(false);
 export function ColumnList({
   selectedIndex,
   size = "row",
+  gap = 0,
   className,
   children,
   ...props
@@ -127,6 +128,8 @@ export function ColumnList({
   /** Index de la ligne sélectionnée ; `-1` s'il n'y en a pas. */
   selectedIndex: number;
   size?: RowSize;
+  /** Espacement entre les lignes, y compris virtualisées. */
+  gap?: number;
 }) {
   const reduceMotion = useReducedMotion();
   const height = ROW_HEIGHT[size];
@@ -145,10 +148,13 @@ export function ColumnList({
         <motion.span
           aria-hidden="true"
           initial={false}
-          animate={{ y: Math.max(selectedIndex, 0) * height, opacity: visible ? 1 : 0 }}
+          animate={{ y: Math.max(selectedIndex, 0) * (height + gap), opacity: visible ? 1 : 0 }}
           transition={jump ? { duration: 0 } : SPRING_LAYOUT}
           style={{ "--row-height": `${height}px` } as CSSProperties}
-          className="pointer-events-none absolute inset-x-2 top-2 h-(--row-height) rounded-lg bg-foreground"
+          className={cn(
+            "pointer-events-none absolute inset-x-2 top-2 h-(--row-height) rounded-lg bg-foreground",
+            size === "row-xl" && "rounded-xl",
+          )}
         />
         {children}
       </div>

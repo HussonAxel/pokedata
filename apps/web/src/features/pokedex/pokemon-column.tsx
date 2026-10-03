@@ -4,14 +4,9 @@ import { SearchIcon } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useDeferredValue, useEffect, useMemo, useState, type CSSProperties } from "react";
 
+import { cn } from "@pokedata/ui/lib/utils";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@pokedata/ui/components/input-group";
-import {
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@pokedata/ui/components/item";
+import { ItemContent, ItemDescription, ItemTitle } from "@pokedata/ui/components/item";
 import {
   Column,
   ColumnBody,
@@ -25,13 +20,22 @@ import { PokemonFilters } from "@/features/pokedex/pokemon-filters";
 import { pokedexIndexOptions, pokedexReferenceOptions } from "@/features/pokedex/queries";
 import { LATEST_GENERATION, parseTypes, type PokedexSearch } from "@/features/pokedex/search";
 import { artworkUrl, preloadImage, spriteUrl } from "@/features/pokedex/sprites";
-import { TypeBadge } from "@/features/pokedex/type-badge";
+import { TypeBadge, typeTint } from "@/features/pokedex/type-badge";
 
-const ROW_HEIGHT = 48;
+const ROW_HEIGHT = 80;
+const ROW_GAP = 8;
 const LIST_PADDING = 8;
 
 /** Troisième colonne de la section Pokédex : les Pokémon, filtrables, qui ouvrent leur fiche. */
-export function PokemonColumn({ mobile }: { mobile: boolean }) {
+export function PokemonColumn({
+  mobile,
+  className,
+  onSelect,
+}: {
+  mobile: boolean;
+  className?: string;
+  onSelect?: () => void;
+}) {
   const { q, type, gen = LATEST_GENERATION, onglet } = useSearch({ strict: false });
   // Lu dans l'URL et non dans les routes résolues : la ligne se sélectionne au clic,
   // sans attendre le chargement de la fiche.
@@ -71,6 +75,7 @@ export function PokemonColumn({ mobile }: { mobile: boolean }) {
     count: entries.length,
     getScrollElement: () => viewport,
     estimateSize: () => ROW_HEIGHT,
+    gap: ROW_GAP,
     getItemKey: (index) => entries[index]?.id ?? index,
     paddingStart: LIST_PADDING,
     paddingEnd: LIST_PADDING,
@@ -104,7 +109,12 @@ export function PokemonColumn({ mobile }: { mobile: boolean }) {
     } as never);
 
   return (
-    <Column mobile={mobile} data-slot="pokemon-column" className={LIST_COLUMN_WIDTH}>
+    <Column
+      id={onSelect ? undefined : "pokemon-list"}
+      mobile={mobile}
+      data-slot="pokemon-column"
+      className={cn(LIST_COLUMN_WIDTH, "xl:basis-88", className)}
+    >
       <ColumnHeader className="flex-col items-stretch">
         <PokemonFilters
           reference={reference}
@@ -133,7 +143,8 @@ export function PokemonColumn({ mobile }: { mobile: boolean }) {
       ) : (
         <ColumnBody viewportRef={setViewport}>
           <ColumnList
-            size="row-lg"
+            size="row-xl"
+            gap={ROW_GAP}
             selectedIndex={entries.findIndex((entry) => entry.identifier === pokemonId)}
           >
             <ul
@@ -158,12 +169,13 @@ export function PokemonColumn({ mobile }: { mobile: boolean }) {
                     }
                   >
                     <ColumnItem
-                      size="row-lg"
+                      size="row-xl"
                       selected={pokemonId === entry.identifier}
                       render={
                         <Link
                           to="/pokedex/$pokemonId"
                           params={{ pokemonId: entry.identifier }}
+                          onClick={onSelect}
                           // Comparer deux Pokémon garde le même onglet ouvert.
                           search={{ q, type, gen, onglet }}
                           resetScroll={false}
@@ -173,29 +185,44 @@ export function PokemonColumn({ mobile }: { mobile: boolean }) {
                         />
                       }
                     >
-                      <ItemMedia variant="image" className="size-8">
+                      <div
+                        aria-hidden="true"
+                        className={cn(
+                          "grid size-16 shrink-0 place-items-center rounded-xl group-data-selected/item:bg-background/15",
+                          typeTint(entry.types[0] ?? ""),
+                        )}
+                      >
                         <img
-                          src={spriteUrl(entry.id)}
+                          src={artworkUrl(entry.id)}
                           alt=""
-                          width={48}
-                          height={48}
+                          width={64}
+                          height={64}
                           decoding="async"
-                          className="object-contain"
+                          className="size-full object-contain p-1 drop-shadow-sm"
+                          onError={(event) => {
+                            const fallback = spriteUrl(entry.id);
+                            if (event.currentTarget.src !== fallback) {
+                              event.currentTarget.src = fallback;
+                              event.currentTarget.style.imageRendering = "pixelated";
+                            }
+                          }}
                         />
-                      </ItemMedia>
-                      <ItemContent>
-                        <ItemTitle>{entry.name}</ItemTitle>
+                      </div>
+                      <ItemContent className="min-w-0">
+                        <ItemTitle className="w-full">{entry.name}</ItemTitle>
                         <ItemDescription>
-                          N° {String(entry.dexNumber).padStart(4, "0")}
+                          <span className="flex items-center gap-3">
+                            <span className="shrink-0 font-mono text-xs tabular-nums">
+                              N° {String(entry.dexNumber).padStart(4, "0")}
+                            </span>
+                            <span className="flex gap-1 [&_img]:size-4">
+                              {entry.types.map((identifier) => (
+                                <TypeBadge key={identifier} identifier={identifier} />
+                              ))}
+                            </span>
+                          </span>
                         </ItemDescription>
                       </ItemContent>
-                      <ItemActions>
-                        <span className="flex gap-0.5">
-                          {entry.types.map((identifier) => (
-                            <TypeBadge key={identifier} identifier={identifier} />
-                          ))}
-                        </span>
-                      </ItemActions>
                     </ColumnItem>
                   </li>
                 );

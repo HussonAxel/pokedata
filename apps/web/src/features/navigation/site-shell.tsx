@@ -1,10 +1,29 @@
 import { Link, useMatches, useRouterState } from "@tanstack/react-router";
-import { UserIcon } from "lucide-react";
+import {
+  CompassIcon,
+  SwordsIcon,
+  LibraryIcon,
+  Gamepad2Icon,
+  UsersIcon,
+  WrenchIcon,
+  UserIcon,
+  PanelLeftCloseIcon,
+  PanelLeftOpenIcon,
+  MenuIcon,
+} from "lucide-react";
 import { useTheme } from "next-themes";
-import { Suspense, type ReactNode } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 
 import { ItemContent, ItemTitle } from "@pokedata/ui/components/item";
 import { Button } from "@pokedata/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@pokedata/ui/components/dialog";
 import { Skeleton } from "@pokedata/ui/components/skeleton";
 import { cn } from "@pokedata/ui/lib/utils";
 import {
@@ -104,7 +123,13 @@ function PageRows({
 }
 
 /** Sous `xl` : le chemin parcouru, chaque étape ramène au niveau correspondant. */
-function Crumbs({ state }: { state: ReturnType<typeof useShellState> }) {
+function Crumbs({
+  state,
+  compact = false,
+}: {
+  state: ReturnType<typeof useShellState>;
+  compact?: boolean;
+}) {
   if (!state.section) return null;
 
   const crumbClass = "min-w-0 truncate transition-colors hover:text-foreground";
@@ -112,7 +137,11 @@ function Crumbs({ state }: { state: ReturnType<typeof useShellState> }) {
   return (
     <nav
       aria-label="Fil d'Ariane"
-      className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-muted-foreground xl:hidden"
+      className={cn(
+        "flex min-w-0 items-center gap-1.5 text-sm font-medium text-muted-foreground",
+        !compact && "xl:hidden",
+        compact && "max-sm:hidden",
+      )}
     >
       <span aria-hidden="true">/</span>
       <Link to={state.section.path} preload={false} className={cn(crumbClass, "shrink-0")}>
@@ -127,6 +156,61 @@ function Crumbs({ state }: { state: ReturnType<typeof useShellState> }) {
         </>
       ) : null}
     </nav>
+  );
+}
+
+const SECTION_ICONS = [
+  CompassIcon,
+  SwordsIcon,
+  LibraryIcon,
+  Gamepad2Icon,
+  UsersIcon,
+  WrenchIcon,
+  UserIcon,
+];
+
+function SectionRail({
+  activeSection,
+  expanded,
+  onToggle,
+}: {
+  activeSection?: string;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Column className="w-16 shrink-0">
+      <nav aria-label="Sections" className="flex flex-col items-center gap-2 p-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggle}
+          aria-label={expanded ? "Replier la navigation" : "Déplier la navigation"}
+          title={expanded ? "Replier la navigation" : "Déplier la navigation"}
+          aria-expanded={expanded}
+          aria-controls="navigation-pages"
+        >
+          {expanded ? <PanelLeftCloseIcon /> : <MenuIcon />}
+        </Button>
+        {sections.map((section, index) => {
+          const Icon = SECTION_ICONS[index]!;
+          return (
+            <Button
+              key={section.path}
+              variant={activeSection === section.title ? "default" : "ghost"}
+              size="icon"
+              nativeButton={false}
+              aria-label={section.title}
+              title={section.title}
+              aria-current={activeSection === section.title ? "true" : undefined}
+              render={<Link to={section.path} preload={false} />}
+            >
+              <Icon />
+            </Button>
+          );
+        })}
+      </nav>
+    </Column>
   );
 }
 
@@ -152,6 +236,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const state = useShellState();
+  const compact = state.detail && state.itemsColumn === "pokemon";
+  const [navigationExpanded, setNavigationExpanded] = useState(false);
+  const [listHidden, setListHidden] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   // Une navigation est en cours : l'URL a changé, la nouvelle vue n'est pas encore prête.
   const pending = useRouterState({ select: (router) => router.isLoading });
   const pathname = useMatches().at(-1)?.pathname;
@@ -168,7 +256,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <Link to="/" className="shrink-0 text-xl font-bold tracking-tight sm:text-2xl">
               Pokedata
             </Link>
-            <Crumbs state={state} />
+            <Crumbs state={state} compact={compact} />
           </div>
           <div className="flex shrink-0 items-center gap-3 text-sm text-muted-foreground sm:gap-5">
             <Button
@@ -201,20 +289,34 @@ export function SiteShell({ children }: { children: ReactNode }) {
         </ColumnsPanelHeader>
 
         <Columns>
-          <Column mobile={state.level === "sections"} className="w-full xl:w-44 xl:shrink-0">
-            <ColumnBody>
-              <ColumnList
-                selectedIndex={sections.findIndex((entry) => entry.title === state.section?.title)}
-              >
-                <nav aria-label="Sections" className="flex flex-col p-2">
-                  <SectionRows activeSection={state.section?.title} />
-                </nav>
-              </ColumnList>
-            </ColumnBody>
-          </Column>
+          {compact ? (
+            <SectionRail
+              activeSection={state.section?.title}
+              expanded={navigationExpanded}
+              onToggle={() => setNavigationExpanded((value) => !value)}
+            />
+          ) : (
+            <Column mobile={state.level === "sections"} className="w-full xl:w-44 xl:shrink-0">
+              <ColumnBody>
+                <ColumnList
+                  selectedIndex={sections.findIndex(
+                    (entry) => entry.title === state.section?.title,
+                  )}
+                >
+                  <nav aria-label="Sections" className="flex flex-col p-2">
+                    <SectionRows activeSection={state.section?.title} />
+                  </nav>
+                </ColumnList>
+              </ColumnBody>
+            </Column>
+          )}
 
-          {state.section ? (
-            <Column mobile={state.level === "pages"} className="w-full xl:w-56 xl:shrink-0">
+          {state.section && (!compact || navigationExpanded) ? (
+            <Column
+              id="navigation-pages"
+              mobile={state.level === "pages"}
+              className="w-full xl:w-56 xl:shrink-0"
+            >
               <ColumnBody>
                 {/* La colonne reste en place d'une section à l'autre ; seules ses pages fondent. */}
                 <ColumnList
@@ -232,7 +334,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             </Column>
           ) : null}
 
-          {ItemsColumn ? (
+          {ItemsColumn && (!compact || !listHidden) ? (
             <Suspense fallback={<ColumnSkeleton />}>
               <ItemsColumn mobile={!state.detail} />
             </Suspense>
@@ -246,10 +348,48 @@ export function SiteShell({ children }: { children: ReactNode }) {
             // vue reste affichée pendant le chargement ; elle ne s'estompe que si
             // celui-ci dure, pour qu'un clic servi par le cache ne clignote pas.
             className={cn(
-              "min-w-0 flex-1 overflow-y-auto transition-opacity duration-200 data-pending:opacity-60 data-pending:delay-200",
+              "@container min-w-0 flex-1 overflow-y-auto transition-opacity duration-200 data-pending:opacity-60 data-pending:delay-200",
               state.level !== "content" && "max-xl:hidden",
             )}
           >
+            {compact ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden xl:inline-flex"
+                  aria-expanded={!listHidden}
+                  aria-controls="pokemon-list"
+                  onClick={() => setListHidden((value) => !value)}
+                >
+                  {listHidden ? <PanelLeftOpenIcon /> : <PanelLeftCloseIcon />}
+                  {listHidden ? "Afficher les Pokémon" : "Masquer la liste"}
+                </Button>
+                <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+                  <DialogTrigger
+                    render={<Button variant="secondary" size="sm" className="xl:hidden" />}
+                  >
+                    <PanelLeftOpenIcon /> Changer de Pokémon
+                  </DialogTrigger>
+                  <DialogContent className="h-[80svh]">
+                    <DialogHeader>
+                      <DialogTitle>Changer de Pokémon</DialogTitle>
+                      <DialogDescription>
+                        Recherchez un Pokémon ou filtrez la liste.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Suspense fallback={<ColumnSkeleton />}>
+                      <PokemonColumn
+                        mobile
+                        className="w-full flex-1 border-r-0 xl:basis-auto"
+                        onSelect={() => setPickerOpen(false)}
+                      />
+                    </Suspense>
+                  </DialogContent>
+                </Dialog>
+                <span className="text-xs text-muted-foreground">Pokédex national</span>
+              </div>
+            ) : null}
             {/* Clé = chemin : changer de page ou de Pokémon fond en douceur, changer un filtre ne remonte rien. */}
             <div
               key={pathname}

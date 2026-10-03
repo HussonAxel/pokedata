@@ -1,5 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { Button } from "@pokedata/ui/components/button";
 import type { CSSProperties, ReactNode } from "react";
 import {
   Card,
@@ -145,8 +147,25 @@ function Page() {
     pokedexDetailOptions({ identifier: pokemonId, locale: "fr", generationId: gen }),
   );
 
+  const { data: index } = useSuspenseQuery(
+    pokedexIndexOptions({ locale: "fr", generationId: gen }),
+  );
+  const position = index.entries.findIndex((entry) => entry.identifier === pokemonId);
+  const previous = position > 0 ? index.entries[position - 1] : undefined;
+  const next = position >= 0 ? index.entries[position + 1] : undefined;
+
   if (!data) return null;
 
+  // La dernière version disponible sert d’introduction ; les variantes restent consultables.
+  const descriptions = [
+    ...new Set(
+      [...data.descriptions]
+        .sort((a, b) => b.versionId - a.versionId)
+        .map(({ flavorText }) => flavorText.replace(/\s+/g, " ").trim())
+        .filter(Boolean),
+    ),
+  ];
+  const [description, ...otherDescriptions] = descriptions;
   const effort = data.stats.filter((line) => line.effort > 0);
   const formOf = (identifier: string) =>
     identifier.startsWith(`${data.speciesIdentifier}-`)
@@ -189,25 +208,64 @@ function Page() {
   return (
     <main
       id="contenu"
-      className="mx-auto flex min-w-0 w-full max-w-6xl flex-col gap-8 px-5 py-10 @2xl:px-8"
+      className="@container mx-auto flex min-w-0 w-full max-w-6xl flex-col gap-6 px-5 py-6 @2xl:px-8"
     >
-      <Link
-        to="/pokedex"
-        search={{ gen, q, type }}
-        // La liste est déjà à gauche à partir de `xl`.
-        className="self-start py-2 text-sm underline underline-offset-4 xl:hidden"
+      <nav
+        aria-label="Pokémon précédent et suivant"
+        className="flex items-center justify-between gap-3"
       >
-        ← Retour au Pokédex
-      </Link>
+        {previous ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            nativeButton={false}
+            render={
+              <Link
+                to="/pokedex/$pokemonId"
+                params={{ pokemonId: previous.identifier }}
+                search={{ gen, q, type, onglet }}
+              />
+            }
+          >
+            <ChevronLeftIcon /> {previous.name}
+          </Button>
+        ) : (
+          <span />
+        )}
+        {next ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            nativeButton={false}
+            render={
+              <Link
+                to="/pokedex/$pokemonId"
+                params={{ pokemonId: next.identifier }}
+                search={{ gen, q, type, onglet }}
+              />
+            }
+          >
+            {next.name} <ChevronRightIcon />
+          </Button>
+        ) : (
+          <span />
+        )}
+      </nav>
 
-      <header className="flex flex-wrap items-start justify-between gap-6">
-        <div className="flex flex-wrap items-center gap-6">
-          <PokemonArtwork pokemonId={data.id} type={data.types[0]?.identifier} />
-          <div className="flex flex-col gap-3">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 basis-full items-center gap-4 @lg:flex-1 @lg:basis-[24rem] @lg:gap-6">
+          <PokemonArtwork
+            pokemonId={data.id}
+            type={data.types[0]?.identifier}
+            className="size-24 @lg:size-36 @2xl:size-40"
+          />
+          <div className="flex min-w-0 flex-col gap-2">
             <p className="text-sm text-muted-foreground">
               Pokédex national · N° {String(data.dexNumber).padStart(4, "0")}
             </p>
-            <h1 className="text-3xl font-semibold tracking-tight @2xl:text-4xl">{data.name}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight wrap-anywhere @lg:text-3xl @2xl:text-4xl">
+              {data.name}
+            </h1>
             {data.formSuffix ? <p>{formatVarietyName(data.name, data.formSuffix)}</p> : null}
             {data.genus ? <p className="text-muted-foreground">{data.genus}</p> : null}
             <div className="flex flex-wrap gap-2">
@@ -215,7 +273,11 @@ function Page() {
                 <TypeBadge key={entry.slot} identifier={entry.identifier} label={entry.name} />
               ))}
             </div>
-            <p className="text-sm text-muted-foreground">
+            <dl className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+              <Fact label="Taille">{formatMeasurement(data.height, "m")}</Fact>
+              <Fact label="Poids">{formatMeasurement(data.weight, "kg")}</Fact>
+            </dl>
+            <p className="text-xs text-muted-foreground">
               Espèce apparue en génération {data.introducedIn} · Fiche en génération {gen}
             </p>
           </div>
@@ -253,32 +315,33 @@ function Page() {
             </TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value="apercu" className="flex flex-col gap-8">
-          <DetailSection id="identite" title="Identité et caractéristiques">
-            <dl className="grid gap-6 @lg:grid-cols-2 @3xl:grid-cols-4">
-              <Fact label="Taille">{formatMeasurement(data.height, "m")}</Fact>
-              <Fact label="Poids">{formatMeasurement(data.weight, "kg")}</Fact>
-              <Fact label="Catégorie">{data.genus ?? "Non renseignée"}</Fact>
-              <Fact label="Statut">
-                {[
-                  data.isBaby ? "Bébé Pokémon" : null,
-                  data.isLegendary ? "Légendaire" : null,
-                  data.isMythical ? "Fabuleux" : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ") || "Pokémon ordinaire"}
-              </Fact>
-              {data.names.map((entry) => (
-                <Fact
-                  key={entry.language}
-                  label={`Nom ${entry.language === "fr" ? "français" : entry.language === "en" ? "anglais" : entry.language}`}
-                >
-                  {entry.name}
-                </Fact>
-              ))}
-            </dl>
+        <TabsContent value="apercu" className="flex flex-col gap-6">
+          <DetailSection id="descriptions" title="Description du Pokédex">
+            {description ? (
+              <div className="flex flex-col gap-4">
+                <p>{description}</p>
+                {otherDescriptions.length ? (
+                  <details>
+                    <summary className="cursor-pointer text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-4">
+                      Autres descriptions ({otherDescriptions.length})
+                    </summary>
+                    <ul className="mt-3 flex flex-col gap-3">
+                      {otherDescriptions.map((text) => (
+                        <li key={text} className="border-l-2 pl-3">
+                          {text}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                Aucune description française pour cette espèce.
+              </p>
+            )}
           </DetailSection>
-          <div className="grid items-start gap-6 @3xl:grid-cols-2">
+          <div className="grid items-start gap-6 @min-[48rem]:grid-cols-2">
             <DetailSection
               id="statistiques"
               title="Statistiques de base"
@@ -323,6 +386,76 @@ function Page() {
               />
             </DetailSection>
           </div>
+          <DetailSection id="talents" title="Talents">
+            {data.abilities.length ? (
+              <ul className="grid gap-3 @lg:grid-cols-2 @3xl:grid-cols-3">
+                {data.abilities.map((ability) => {
+                  const talentType = ability.isHidden ? "Talent caché" : `Talent ${ability.slot}`;
+
+                  return (
+                    <li key={ability.id}>
+                      <PreviewCard>
+                        <PreviewCardTrigger
+                          delay={250}
+                          closeDelay={200}
+                          render={
+                            <Link
+                              to="/encyclopedie/talents/$talentId"
+                              params={{ talentId: ability.identifier }}
+                              search={{ gen }}
+                              className="flex h-full w-full flex-col items-start gap-1 rounded-lg border p-4 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-4"
+                            >
+                              <span className="font-medium">{ability.name}</span>
+                              <span className="text-sm text-muted-foreground">{talentType}</span>
+                            </Link>
+                          }
+                        />
+                        <PreviewCardPanel side="top">
+                          <div className="flex flex-col gap-3">
+                            <p>
+                              {ability.description ??
+                                "Aucune description française disponible pour cette génération."}
+                            </p>
+                            <Link
+                              to="/encyclopedie/talents/$talentId"
+                              params={{ talentId: ability.identifier }}
+                              search={{ gen }}
+                              className="self-start font-medium underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4"
+                            >
+                              Voir le talent
+                            </Link>
+                          </div>
+                        </PreviewCardPanel>
+                      </PreviewCard>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground">Aucun talent renseigné.</p>
+            )}
+          </DetailSection>
+          <DetailSection id="identite" title="Informations complémentaires">
+            <dl className="flex flex-wrap gap-x-6 gap-y-3 [&>div]:min-w-0 [&>div]:flex-row [&>div]:flex-wrap [&>div]:gap-x-2 [&_dd]:wrap-anywhere">
+              <Fact label="Statut">
+                {[
+                  data.isBaby ? "Bébé Pokémon" : null,
+                  data.isLegendary ? "Légendaire" : null,
+                  data.isMythical ? "Fabuleux" : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "Pokémon ordinaire"}
+              </Fact>
+              {data.names.map((entry) => (
+                <Fact
+                  key={entry.language}
+                  label={`Nom ${entry.language === "fr" ? "français" : entry.language === "en" ? "anglais" : entry.language}`}
+                >
+                  {entry.name}
+                </Fact>
+              ))}
+            </dl>
+          </DetailSection>
         </TabsContent>
         <TabsContent value="evolutions" className="flex flex-col gap-8">
           <DetailSection
@@ -447,82 +580,6 @@ function Page() {
               </ul>
             ) : (
               <p className="text-muted-foreground">Aucun groupe d’œufs renseigné.</p>
-            )}
-          </DetailSection>
-        </TabsContent>
-        <TabsContent value="descriptions" className="flex flex-col gap-8">
-          <DetailSection
-            id="descriptions"
-            title="Descriptions du Pokédex"
-            description="Textes officiels par version, nettoyés pour une lecture correcte."
-          >
-            {data.descriptions.length ? (
-              <ul className="grid gap-3 @lg:grid-cols-2">
-                {data.descriptions.map((description) => (
-                  <li key={description.versionId} className="rounded-lg border p-4">
-                    {description.flavorText}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground">
-                Aucune description française pour cette espèce.
-              </p>
-            )}
-          </DetailSection>
-        </TabsContent>
-        <TabsContent value="talents" className="flex flex-col gap-8">
-          <DetailSection
-            id="talents"
-            title="Talents"
-            description="Les talents cachés sont distingués des talents classiques."
-          >
-            {data.abilities.length ? (
-              <ul className="grid gap-3 @lg:grid-cols-2 @3xl:grid-cols-3">
-                {data.abilities.map((ability) => {
-                  const talentType = ability.isHidden ? "Talent caché" : `Talent ${ability.slot}`;
-
-                  return (
-                    <li key={ability.id}>
-                      <PreviewCard>
-                        <PreviewCardTrigger
-                          delay={250}
-                          closeDelay={200}
-                          render={
-                            <Link
-                              to="/encyclopedie/talents/$talentId"
-                              params={{ talentId: ability.identifier }}
-                              search={{ gen }}
-                              className="flex h-full w-full flex-col items-start gap-1 rounded-lg border p-4 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-4"
-                            >
-                              <span className="font-medium">{ability.name}</span>
-                              <span className="text-sm text-muted-foreground">{talentType}</span>
-                            </Link>
-                          }
-                        />
-                        <PreviewCardPanel side="top">
-                          <div className="flex flex-col gap-3">
-                            <p>
-                              {ability.description ??
-                                "Aucune description française disponible pour cette génération."}
-                            </p>
-                            <Link
-                              to="/encyclopedie/talents/$talentId"
-                              params={{ talentId: ability.identifier }}
-                              search={{ gen }}
-                              className="self-start font-medium underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4"
-                            >
-                              Voir le talent
-                            </Link>
-                          </div>
-                        </PreviewCardPanel>
-                      </PreviewCard>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground">Aucun talent renseigné.</p>
             )}
           </DetailSection>
         </TabsContent>

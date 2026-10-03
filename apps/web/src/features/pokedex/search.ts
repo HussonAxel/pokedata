@@ -36,8 +36,6 @@ export const POKEMON_TABS = [
   ["apercu", "Aperçu"],
   ["evolutions", "Évolutions"],
   ["elevage", "Élevage"],
-  ["descriptions", "Descriptions"],
-  ["talents", "Talents"],
   ["attaques", "Attaques"],
   ["rencontres", "Rencontres"],
   ["medias", "Médias"],
