@@ -50,7 +50,7 @@ const ITEMS_COLUMNS = {
 
 const normalize = (path: string) => path.replace(/\/+$/, "") || "/";
 
-type MobileLevel = "sections" | "pages" | "items" | "content";
+type MobileLevel = "pages" | "items" | "content";
 
 /** Où se trouve-t-on : la section (colonne 1), la page (colonne 2), et ce que la route demande. */
 function useShellState() {
@@ -78,7 +78,7 @@ function useShellState() {
   // remonte par le fil d'Ariane de l'en-tête.
   const level: MobileLevel =
     fullPath === "/"
-      ? "sections"
+      ? "content"
       : section && fullPath === section.path
         ? "pages"
         : itemsColumn && !detail
@@ -296,7 +296,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
               onToggle={() => setNavigationExpanded((value) => !value)}
             />
           ) : (
-            <Column mobile={state.level === "sections"} className="w-full xl:w-44 xl:shrink-0">
+            <Column className="w-full xl:w-44 xl:shrink-0">
               <ColumnBody>
                 <ColumnList
                   selectedIndex={sections.findIndex(
