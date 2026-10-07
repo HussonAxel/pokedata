@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+
 const TYPE_CLASSES: Record<string, string> = {
   normal: "bg-stone-500/10 text-stone-700 dark:text-stone-300",
   fighting: "bg-red-500/10 text-red-700 dark:text-red-300",
@@ -60,5 +62,21 @@ export function TypeBadge({ identifier, label }: { identifier: string; label?: s
       decoding="async"
       className="size-6 shrink-0 object-contain"
     />
+  );
+}
+
+/** Lien autonome ; dans une ligne déjà cliquable, utiliser TypeBadge. */
+export function TypeBadgeLink({ identifier, label }: { identifier: string; label?: string }) {
+  const name = label ?? TYPE_LABELS[identifier] ?? identifier;
+
+  return (
+    <Link
+      to="/encyclopedie/types/$typeId"
+      params={{ typeId: identifier }}
+      aria-label={`Voir le type ${name}`}
+      className="inline-flex size-6 shrink-0 rounded-full outline-none transition-transform duration-150 hover:scale-110 focus-visible:scale-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
+    >
+      <TypeBadge identifier={identifier} label={name} />
+    </Link>
   );
 }

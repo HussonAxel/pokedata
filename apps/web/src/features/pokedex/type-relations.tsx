@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ShieldIcon, SwordsIcon } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/motion/tabs";
-import { TypeBadge } from "@/features/pokedex/type-badge";
+import { TypeBadgeLink } from "@/features/pokedex/type-badge";
 
 type Matchup = { identifier: string; name: string; multiplier: number };
 
@@ -51,7 +51,7 @@ function TypeList({ entries }: { entries: Matchup[] }) {
     <ul className="flex flex-wrap gap-1">
       {entries.map((entry) => (
         <li key={entry.identifier}>
-          <TypeBadge identifier={entry.identifier} label={entry.name} />
+          <TypeBadgeLink identifier={entry.identifier} label={entry.name} />
         </li>
       ))}
     </ul>

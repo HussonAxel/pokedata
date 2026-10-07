@@ -41,7 +41,7 @@ import {
   pokemonSearchSchema,
   type PokemonTab,
 } from "@/features/pokedex/search";
-import { TypeBadge } from "@/features/pokedex/type-badge";
+import { TypeBadgeLink } from "@/features/pokedex/type-badge";
 import { TypeRelations } from "@/features/pokedex/type-relations";
 
 export const Route = createFileRoute("/pokedex/$pokemonId/")({
@@ -270,7 +270,7 @@ function Page() {
             {data.genus ? <p className="text-muted-foreground">{data.genus}</p> : null}
             <div className="flex flex-wrap gap-2">
               {data.types.map((entry) => (
-                <TypeBadge key={entry.slot} identifier={entry.identifier} label={entry.name} />
+                <TypeBadgeLink key={entry.slot} identifier={entry.identifier} label={entry.name} />
               ))}
             </div>
             <dl className="flex flex-wrap gap-x-5 gap-y-2 text-sm">

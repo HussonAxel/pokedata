@@ -12,7 +12,7 @@ import {
 } from "@pokedata/ui/components/preview-card";
 import { pokedexPreviewOptions } from "@/features/pokedex/queries";
 import { artworkUrl, preloadImage } from "@/features/pokedex/sprites";
-import { TypeBadge, typeTint } from "@/features/pokedex/type-badge";
+import { TypeBadgeLink, typeTint } from "@/features/pokedex/type-badge";
 
 /**
  * Donne à un lien (ou à tout autre élément) un aperçu du Pokémon au survol.
@@ -103,7 +103,7 @@ export function PokemonPreview({ identifier, gen }: { identifier: string; gen: n
 
       <div className="flex flex-wrap gap-1.5 px-4 pt-3">
         {data.types.map((entry) => (
-          <TypeBadge key={entry.slot} identifier={entry.identifier} label={entry.name} />
+          <TypeBadgeLink key={entry.slot} identifier={entry.identifier} label={entry.name} />
         ))}
       </div>
 
@@ -149,7 +149,7 @@ export function PokemonPreview({ identifier, gen }: { identifier: string; gen: n
                   <ul className="flex flex-wrap gap-1">
                     {group.values.map((matchup) => (
                       <li key={matchup.identifier}>
-                        <TypeBadge
+                        <TypeBadgeLink
                           identifier={matchup.identifier}
                           label={`${matchup.name} ×${matchup.multiplier}`}
                         />
