@@ -40,7 +40,7 @@ export function useShellState() {
           : "content";
 
   // Une fiche ouverte à côté de sa liste : la navigation se replie en rail d'icônes.
-  const compact = detail && itemsColumn === "pokemon";
+  const compact = detail && itemsColumn !== undefined;
 
   return { section, pages, page, itemsColumn, detail, level, compact };
 }

@@ -1,11 +1,15 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Button } from "@pokedata/ui/components/button";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { TypeChart } from "@/components/charts/type-chart";
+import { GenerationSelect } from "@/components/generation-select";
+import { PageContainer } from "@/components/page-container";
+import { PageEyebrow, PageHeader, PageTitle } from "@/components/page-header";
+import { TypeBadge } from "@/features/pokedex/type-badge";
 import { pokedexReferenceOptions, pokedexTypeChartOptions } from "@/features/pokedex/queries";
-
-const LATEST_GENERATION = 9;
+import { LATEST_GENERATION } from "@/features/pokedex/search";
 
 /** La génération vit dans l'URL : une table se partage telle qu'elle est lue. */
 const searchSchema = z.object({
@@ -36,29 +40,48 @@ function Page() {
   const { data: reference } = useSuspenseQuery(pokedexReferenceOptions(scope));
 
   return (
-    <main id="contenu" className="mx-auto w-full max-w-6xl px-5 py-10 md:px-8">
-      <div className="mb-8 space-y-4">
-        <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Table des types</h1>
-        <p className="text-muted-foreground">
-          {chart.types.length} types en génération {gen}. Une ligne par type d'attaque, une colonne
-          par type défenseur ; la dernière colonne compte les types touchés ×2.
-        </p>
-
-        <select
+    <PageContainer>
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <PageHeader>
+          <PageEyebrow>types ( {chart.types.length} )</PageEyebrow>
+          <PageTitle>Table des types</PageTitle>
+          <p className="max-w-2xl text-muted-foreground">
+            Une ligne par type d'attaque, une colonne par type défenseur ; la dernière colonne
+            compte les types touchés ×2.
+          </p>
+        </PageHeader>
+        <GenerationSelect
           value={gen}
-          aria-label="Génération"
-          className="h-10 rounded-lg border px-3"
-          onChange={(event) => {
-            navigate({ search: (previous) => ({ ...previous, gen: Number(event.target.value) }) });
-          }}
-        >
-          {reference.generations.map((entry) => (
-            <option key={entry.id} value={entry.id}>
-              Génération {entry.id}
-            </option>
-          ))}
-        </select>
+          generations={reference.generations.map((entry) => entry.id)}
+          onValueChange={(next) =>
+            void navigate({ search: (previous) => ({ ...previous, gen: next }) })
+          }
+        />
       </div>
+
+      <nav aria-label="Fiches des types">
+        <ul className="flex flex-wrap gap-2">
+          {chart.types.map((entry) => (
+            <li key={entry.identifier}>
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                render={
+                  <Link
+                    to="/encyclopedie/types/$typeId"
+                    params={{ typeId: entry.identifier }}
+                    search={{ gen }}
+                  />
+                }
+              >
+                <TypeBadge identifier={entry.identifier} label={entry.name} />
+                {entry.name}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       {/* La table garde une largeur minimale lisible : sur petit écran elle
           défile horizontalement plutôt que d'écraser ses colonnes. */}
@@ -73,7 +96,7 @@ function Page() {
 
       {/* La légende reprend exactement les fonds de la grille : quatre niveaux,
           jamais un dégradé continu. */}
-      <dl className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+      <dl className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <span className="grid size-5 place-items-center rounded-xs bg-success/25 font-mono text-xs font-semibold text-foreground">
             2
@@ -101,6 +124,6 @@ function Page() {
           <dd>neutre</dd>
         </div>
       </dl>
-    </main>
+    </PageContainer>
   );
 }

@@ -111,7 +111,7 @@ export function PokemonColumn({
 
   return (
     <Column
-      id={onSelect ? undefined : "pokemon-list"}
+      id={onSelect ? undefined : "items-list"}
       mobile={mobile}
       data-slot="pokemon-column"
       className={cn(LIST_COLUMN_WIDTH, "xl:basis-88", className)}

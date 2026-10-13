@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
   Table,
   TableBody,
@@ -46,7 +47,16 @@ export function MovesSection() {
             <TableBody>
               {pokemon.moves.map((move) => (
                 <TableRow key={`${move.id}-${move.versionGroupId}-${move.methodId}`}>
-                  <TableCell variant="label">{move.name}</TableCell>
+                  <TableCell variant="label">
+                    <Link
+                      to="/encyclopedie/attaques/$attaqueId"
+                      params={{ attaqueId: move.identifier }}
+                      search={{ gen }}
+                      className="hover:underline"
+                    >
+                      {move.name}
+                    </Link>
+                  </TableCell>
                   <TableCell variant="muted">{formatMoveMethod(move.methodId)}</TableCell>
                   <TableCell variant="numeric">{move.level || "—"}</TableCell>
                   <TableCell variant="numeric">{move.power ?? "—"}</TableCell>

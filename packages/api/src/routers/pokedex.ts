@@ -36,17 +36,11 @@ import { z } from "zod";
 
 import type { Context } from "../context";
 import { abilityDescription } from "../ability-description";
+import { generationId, locale } from "../catalog-input";
 import { conditionsForForm, formSuffix, resolveEvolutionFamily } from "../evolution-family";
 import { publicProcedure } from "../index";
 
-/**
- * Génération par défaut du catalogue. À dériver de `select max(id) from generation`
- * le jour où le sélecteur de version sera exposé dans l'interface.
- */
-export const LATEST_GENERATION = 9;
-
-const locale = z.enum(["fr", "en"]).default("fr");
-const generationId = z.number().int().min(1).max(LATEST_GENERATION).default(LATEST_GENERATION);
+export { LATEST_GENERATION } from "../catalog-input";
 
 /**
  * Index compact du Pokédex : une ligne par variété par défaut, sans description

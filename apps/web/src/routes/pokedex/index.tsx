@@ -1,6 +1,6 @@
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@pokedata/ui/components/empty";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { ListPlaceholder } from "@/components/list-placeholder";
 import { pokedexIndexOptions, pokedexReferenceOptions } from "@/features/pokedex/queries";
 import { pokedexSearchSchema } from "@/features/pokedex/search";
 
@@ -25,15 +25,8 @@ export const Route = createFileRoute("/pokedex/")({
 /** La liste est dans la colonne de gauche (voir `PokemonColumn`) ; ici, rien n'est encore ouvert. */
 function Page() {
   return (
-    <Empty id="contenu" className="h-full">
-      <EmptyHeader>
-        <EmptyTitle>
-          <h1>Pokédex national</h1>
-        </EmptyTitle>
-        <EmptyDescription>
-          Choisissez un Pokémon dans la liste pour afficher sa fiche.
-        </EmptyDescription>
-      </EmptyHeader>
-    </Empty>
+    <ListPlaceholder title="Pokédex national">
+      Choisissez un Pokémon dans la liste pour afficher sa fiche.
+    </ListPlaceholder>
   );
 }

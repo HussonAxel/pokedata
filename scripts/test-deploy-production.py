@@ -44,7 +44,8 @@ elif name == "curl":
     if fail and fail in args:
         sys.exit(22)
     # Every smoke-test marker, so the expected-content check passes.
-    print("Pokedata Pokédex national Pikachu</h1> Attaques apprises Statik</h1> Explorer</h1>")
+    print("Pokedata Pokédex national Pikachu</h1> Attaques apprises Statik</h1> "
+          "Tonnerre</h1> Feu</h1> Explorer</h1>")
 elif name == "docker":
     fail = os.environ["FAIL"]
     if fail and fail in args:

@@ -19,13 +19,19 @@ const DOMAIN_TABLES = [
   "location",
   "pokemon_evolution",
   "evolution_trigger_name",
+  "berry_flavor",
+  "berry",
+  "item_flavor_text",
   "item_name",
   "item",
+  "item_category_name",
+  "item_category",
   "species_flavor_text",
   "pokemon_egg_group",
   "egg_group_name",
   "egg_group",
   "pokemon_move",
+  "move_flavor_text",
   "move_name",
   "move",
   "pokemon_ability",
@@ -229,11 +235,13 @@ const STEPS: { label: string; sql: string }[] = [
   },
   {
     label: "move",
-    sql: `insert into move (id, identifier, generation_id, type_id, power, pp, accuracy, priority, effect_chance)
-      select id::int, identifier, nullif(generation_id, '')::int, nullif(type_id, '')::int,
-        nullif(power, '')::int, nullif(pp, '')::int, nullif(accuracy, '')::int,
-        nullif(priority, '')::int, nullif(effect_chance, '')::int
-      from staging.moves where id::int < 10000 and type_id::int < 10000`,
+    sql: `insert into move (id, identifier, generation_id, type_id, power, pp, accuracy, priority, effect_chance, damage_class)
+      select m.id::int, m.identifier, nullif(m.generation_id, '')::int, nullif(m.type_id, '')::int,
+        nullif(m.power, '')::int, nullif(m.pp, '')::int, nullif(m.accuracy, '')::int,
+        nullif(m.priority, '')::int, nullif(m.effect_chance, '')::int, c.identifier
+      from staging.moves m
+      left join staging.move_damage_classes c on c.id = m.damage_class_id
+      where m.id::int < 10000 and m.type_id::int < 10000`,
   },
   {
     label: "move_name",
@@ -241,6 +249,16 @@ const STEPS: { label: string; sql: string }[] = [
       select n.move_id::int, l.code, n.name from staging.move_names n
       join (values ${LANGUAGES}) l(id, code) on l.id = n.local_language_id::int
       where n.move_id::int < 10000`,
+  },
+  {
+    label: "move_flavor_text",
+    sql: `insert into move_flavor_text (move_id, language, version_group_id, flavor_text)
+      select f.move_id::int, l.code, f.version_group_id::int,
+        regexp_replace(trim(f.flavor_text), '[[:space:]]+', ' ', 'g')
+      from staging.move_flavor_text f
+      join (values ${LANGUAGES}) l(id, code) on l.id = f.language_id::int
+      join move m on m.id = f.move_id::int
+      where nullif(trim(f.flavor_text), '') is not null`,
   },
   {
     label: "pokemon_move",
@@ -282,14 +300,57 @@ const STEPS: { label: string; sql: string }[] = [
       join (values ${LANGUAGES}) l(id, code) on l.id = p.local_language_id::int`,
   },
   {
+    label: "item_category",
+    sql: `insert into item_category (id, identifier, pocket_id)
+      select id::int, identifier, nullif(pocket_id, '')::int from staging.item_categories`,
+  },
+  {
+    label: "item_category_name",
+    sql: `insert into item_category_name (category_id, language, name)
+      select p.item_category_id::int, l.code, p.name from staging.item_category_prose p
+      join (values ${LANGUAGES}) l(id, code) on l.id = p.local_language_id::int`,
+  },
+  {
     label: "item",
-    sql: `insert into item (id, identifier) select id::int, identifier from staging.items`,
+    sql: `insert into item (id, identifier, category_id, cost)
+      select id::int, identifier, nullif(category_id, '')::int, nullif(cost, '')::int
+      from staging.items`,
   },
   {
     label: "item_name",
     sql: `insert into item_name (item_id, language, name)
       select n.item_id::int, l.code, n.name from staging.item_names n
       join (values ${LANGUAGES}) l(id, code) on l.id = n.local_language_id::int`,
+  },
+  {
+    label: "item_flavor_text",
+    sql: `insert into item_flavor_text (item_id, language, version_group_id, flavor_text)
+      select f.item_id::int, l.code, f.version_group_id::int,
+        regexp_replace(trim(f.flavor_text), '[[:space:]]+', ' ', 'g')
+      from staging.item_flavor_text f
+      join (values ${LANGUAGES}) l(id, code) on l.id = f.language_id::int
+      where nullif(trim(f.flavor_text), '') is not null`,
+  },
+  {
+    label: "berry",
+    sql: `insert into berry (
+        id, item_id, firmness, natural_gift_power, natural_gift_type_id, size,
+        max_harvest, growth_time, soil_dryness, smoothness
+      )
+      select b.id::int, b.item_id::int, f.identifier, nullif(b.natural_gift_power, '')::int,
+        nullif(b.natural_gift_type_id, '')::int, nullif(b.size, '')::int,
+        nullif(b.max_harvest, '')::int, nullif(b.growth_time, '')::int,
+        nullif(b.soil_dryness, '')::int, nullif(b.smoothness, '')::int
+      from staging.berries b
+      left join staging.berry_firmness f on f.id = b.firmness_id`,
+  },
+  {
+    label: "berry_flavor",
+    sql: `insert into berry_flavor (berry_id, flavor, potency)
+      select f.berry_id::int, lower(n.flavor), f.flavor::int
+      from staging.berry_flavors f
+      join staging.contest_type_names n
+        on n.contest_type_id = f.contest_type_id and n.local_language_id = '9'`,
   },
   {
     label: "pokemon_evolution",
@@ -461,10 +522,23 @@ const STEPS: { label: string; sql: string }[] = [
   },
 ];
 
-async function readSource(): Promise<SourceInfo> {
+/**
+ * Source du schéma staging : le cache local de `ingest:fetch`, ou à défaut le
+ * dernier import réussi enregistré en base. Ce repli permet de rejouer la
+ * transformation seule depuis un conteneur neuf, sans retélécharger les CSV.
+ */
+async function readSource(client: Client): Promise<Pick<SourceInfo, "sha">> {
   try {
     return JSON.parse(await readFile(sourceFile, "utf8")) as SourceInfo;
   } catch {
+    const imported = await client
+      .query<{ sha: string }>(
+        `select source_sha as sha from ${quoteIdent(META_SCHEMA)}.import_run
+          where status = 'done' order by id desc limit 1`,
+      )
+      .catch(() => null);
+    const sha = imported?.rows[0]?.sha;
+    if (sha) return { sha };
     throw new Error("Aucune source connue. Lancer `pnpm ingest:fetch` puis `pnpm ingest:stage`.");
   }
 }
@@ -495,11 +569,11 @@ async function createMetaTable(client: Client) {
 
 /** staging -> modèle métier. Reconstruit intégralement les tables du catalogue. */
 export async function runTransform() {
-  const source = await readSource();
   const client = createClient();
   await client.connect();
 
   try {
+    const source = await readSource(client);
     await assertStagingLoaded(client);
     await createMetaTable(client);
 

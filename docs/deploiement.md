@@ -89,6 +89,15 @@ docker compose -f docker-compose.prod.yml run --rm --workdir /app web \
 
 À rejouer quand les données PokéAPI évoluent. Une tâche `cron` mensuelle suffit.
 
+Quand une migration ajoute une table au modèle métier, seule la transformation
+est à rejouer : elle reprend le schéma `staging` déjà chargé et retrouve sa
+source dans `ingest.import_run`, sans retélécharger les CSV.
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm --no-deps --workdir /app web \
+  pnpm ingest:transform
+```
+
 ## Mise à jour du site
 
 La CI/CD est définie dans `.github/workflows/ci.yml`. Chaque push ou fusion sur

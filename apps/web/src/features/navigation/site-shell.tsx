@@ -4,20 +4,12 @@ import { Suspense, type ReactNode } from "react";
 
 import { Columns, ColumnsPanel } from "@/components/columns-panel";
 import { ColumnSkeleton } from "@/features/navigation/column-skeleton";
-import { PokemonDetailToolbar } from "@/features/navigation/pokemon-detail-toolbar";
+import { DetailToolbar } from "@/features/navigation/detail-toolbar";
+import { ITEMS_COLUMNS } from "@/features/navigation/items-columns";
 import { PageColumn, SectionColumn, SectionRail } from "@/features/navigation/section-nav";
 import { ShellLayoutProvider, useShellLayout } from "@/features/navigation/shell-layout";
 import { SiteHeader } from "@/features/navigation/site-header";
 import { useShellState, type ShellState } from "@/features/navigation/use-shell-state";
-import { PokemonColumn } from "@/features/pokedex/pokemon-column";
-
-/**
- * Troisième colonne d'une page : la liste d'éléments dont chaque ligne ouvre un
- * détail. Une route la réclame via `staticData.itemsColumn`.
- */
-const ITEMS_COLUMNS = {
-  pokemon: PokemonColumn,
-} as const;
 
 /**
  * Coquille du site : une barre givrée flottante au-dessus d'un panneau à
@@ -49,7 +41,7 @@ function ShellColumns({ state }: { state: ShellState }) {
   const {
     state: { navigationExpanded, listHidden },
   } = useShellLayout();
-  const ItemsColumn = state.itemsColumn ? ITEMS_COLUMNS[state.itemsColumn] : undefined;
+  const ItemsColumn = state.itemsColumn ? ITEMS_COLUMNS[state.itemsColumn].Column : undefined;
 
   return (
     <>
@@ -82,7 +74,7 @@ function ShellContent({ state, children }: { state: ShellState; children: ReactN
         state.level !== "content" && "max-xl:hidden",
       )}
     >
-      {state.compact ? <PokemonDetailToolbar /> : null}
+      {state.compact && state.itemsColumn ? <DetailToolbar column={state.itemsColumn} /> : null}
       {/* Clé = chemin : changer de page ou de Pokémon fond en douceur, changer un filtre ne remonte rien. */}
       <div
         key={pathname}

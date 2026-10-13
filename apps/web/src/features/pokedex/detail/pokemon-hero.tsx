@@ -1,18 +1,10 @@
 import { Button } from "@pokedata/ui/components/button";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@pokedata/ui/components/select";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { useId } from "react";
 
 import { Fact, FactList } from "@/components/fact-list";
+import { GenerationSelect } from "@/components/generation-select";
 import { PageEyebrow, PageHeader, PageMeta, PageTitle } from "@/components/page-header";
 import { formatMeasurement, formatVarietyName } from "@/features/pokedex/detail-format";
 import { usePokemonDetail } from "@/features/pokedex/detail/context";
@@ -111,46 +103,25 @@ export function PokemonHero() {
           </PageMeta>
         </PageHeader>
       </div>
-      <GenerationSelect />
+      <PokemonGenerationSelect />
     </div>
   );
 }
 
 /** Génération consultée : change la fiche entière, l'onglet ouvert est conservé. */
-function GenerationSelect() {
+function PokemonGenerationSelect() {
   const { pokemon, gen } = usePokemonDetail();
   const navigate = useNavigate({ from: ROUTE });
-  const labelId = useId();
-  const items = pokemon.availableGenerations
-    .filter((entry) => entry.id <= LATEST_GENERATION)
-    .map((entry) => ({ value: entry.id, label: `Génération ${entry.id}` }));
 
   return (
-    <div className="flex flex-col gap-2">
-      <span id={labelId} className="label-mono text-muted-foreground">
-        Génération consultée
-      </span>
-      <Select
-        items={items}
-        value={gen}
-        onValueChange={(value) => {
-          if (value !== null)
-            void navigate({ search: (previous) => ({ ...previous, gen: value }) });
-        }}
-      >
-        <SelectTrigger aria-labelledby={labelId} className="min-w-40">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {items.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-    </div>
+    <GenerationSelect
+      value={gen}
+      generations={pokemon.availableGenerations
+        .map((entry) => entry.id)
+        .filter((id) => id <= LATEST_GENERATION)}
+      onValueChange={(next) =>
+        void navigate({ search: (previous) => ({ ...previous, gen: next }) })
+      }
+    />
   );
 }

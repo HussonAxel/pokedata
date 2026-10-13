@@ -18,3 +18,7 @@ export function preloadImage(src: string) {
 
 /** Sprite chromatique (96 px). */
 export const shinySpriteUrl = (pokemonId: number) => `${SPRITES_URL}/shiny/${pokemonId}.png`;
+
+/** Sprite d'un objet (30 px), par identifiant PokéAPI. */
+export const itemSpriteUrl = (identifier: string) =>
+  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${identifier}.png`;

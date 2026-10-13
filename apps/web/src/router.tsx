@@ -32,6 +32,8 @@ export const getRouter = () => {
   return router;
 };
 
+import type { ItemsColumnId } from "@/features/navigation/items-columns";
+
 declare module "@tanstack/react-router" {
   interface Register {
     router: ReturnType<typeof getRouter>;
@@ -40,7 +42,7 @@ declare module "@tanstack/react-router" {
   /** Ce qu'une route demande à la coquille de colonnes (voir `SiteShell`). */
   interface StaticDataRouteOption {
     /** Liste d'éléments à afficher en troisième colonne. */
-    itemsColumn?: "pokemon";
+    itemsColumn?: ItemsColumnId;
     /** La route est le détail d'un élément de cette liste. */
     detail?: boolean;
   }

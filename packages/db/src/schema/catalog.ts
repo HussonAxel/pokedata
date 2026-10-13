@@ -275,6 +275,8 @@ export const move = pgTable("move", {
   accuracy: integer("accuracy"),
   priority: integer("priority"),
   effectChance: integer("effect_chance"),
+  /** `physical`, `special` ou `status`. */
+  damageClass: text("damage_class"),
 });
 
 export const moveName = pgTable(
@@ -287,6 +289,21 @@ export const moveName = pgTable(
     name: text("name").notNull(),
   },
   (table) => [primaryKey({ columns: [table.moveId, table.language] })],
+);
+
+export const moveFlavorText = pgTable(
+  "move_flavor_text",
+  {
+    moveId: integer("move_id")
+      .notNull()
+      .references(() => move.id),
+    language: text("language").notNull(),
+    versionGroupId: integer("version_group_id")
+      .notNull()
+      .references(() => versionGroup.id),
+    flavorText: text("flavor_text").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.moveId, table.language, table.versionGroupId] })],
 );
 
 export const pokemonMove = pgTable(
@@ -389,10 +406,76 @@ export const evolutionTriggerName = pgTable(
 );
 
 /** Objet : pierre d'évolution, objet tenu, Bracelet Galanoa. Référencé par les conditions d'évolution. */
+export const itemCategory = pgTable("item_category", {
+  id: integer("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  pocketId: integer("pocket_id"),
+});
+
+export const itemCategoryName = pgTable(
+  "item_category_name",
+  {
+    categoryId: integer("category_id")
+      .notNull()
+      .references(() => itemCategory.id),
+    language: text("language").notNull(),
+    name: text("name").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.categoryId, table.language] })],
+);
+
 export const item = pgTable("item", {
   id: integer("id").primaryKey(),
   identifier: text("identifier").notNull(),
+  categoryId: integer("category_id").references(() => itemCategory.id),
+  cost: integer("cost"),
 });
+
+export const itemFlavorText = pgTable(
+  "item_flavor_text",
+  {
+    itemId: integer("item_id")
+      .notNull()
+      .references(() => item.id),
+    language: text("language").notNull(),
+    versionGroupId: integer("version_group_id")
+      .notNull()
+      .references(() => versionGroup.id),
+    flavorText: text("flavor_text").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.itemId, table.language, table.versionGroupId] })],
+);
+
+export const berry = pgTable("berry", {
+  id: integer("id").primaryKey(),
+  itemId: integer("item_id")
+    .notNull()
+    .references(() => item.id),
+  /** `very-soft`, `soft`, `hard`, `very-hard` ou `super-hard`. */
+  firmness: text("firmness"),
+  naturalGiftPower: integer("natural_gift_power"),
+  naturalGiftTypeId: integer("natural_gift_type_id").references(() => type.id),
+  /** Taille en millimètres. */
+  size: integer("size"),
+  maxHarvest: integer("max_harvest"),
+  /** Heures par stade de croissance (quatre stades jusqu'à la récolte). */
+  growthTime: integer("growth_time"),
+  soilDryness: integer("soil_dryness"),
+  smoothness: integer("smoothness"),
+});
+
+/** Intensité de chaque saveur (`spicy`, `dry`, `sweet`, `bitter`, `sour`). */
+export const berryFlavor = pgTable(
+  "berry_flavor",
+  {
+    berryId: integer("berry_id")
+      .notNull()
+      .references(() => berry.id),
+    flavor: text("flavor").notNull(),
+    potency: integer("potency").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.berryId, table.flavor] })],
+);
 
 export const itemName = pgTable(
   "item_name",

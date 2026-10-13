@@ -88,6 +88,8 @@ else
 /pokedex/pikachu Pikachu</h1>
 /pokedex/pikachu?onglet=attaques Attaques apprises
 /encyclopedie/talents/static Statik</h1>
+/encyclopedie/attaques/thunderbolt Tonnerre</h1>
+/encyclopedie/types/fire Feu</h1>
 /explorer Explorer</h1>
 PAGES
 fi
