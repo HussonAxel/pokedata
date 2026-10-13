@@ -2,6 +2,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
@@ -10,6 +11,15 @@ export default defineConfig({
   },
   resolve: {
     tsconfigPaths: true,
+    alias: [
+      // Voir src/lib/use-sync-external-store-shim.ts.
+      {
+        find: /^use-sync-external-store\/shim$/,
+        replacement: fileURLToPath(
+          new URL("./src/lib/use-sync-external-store-shim.ts", import.meta.url),
+        ),
+      },
+    ],
   },
   plugins: [tailwindcss(), tanstackStart(), nitro({ preset: "node-server" }), viteReact()],
 });
