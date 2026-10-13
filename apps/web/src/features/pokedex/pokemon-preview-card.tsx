@@ -13,6 +13,7 @@ import {
 import { pokedexPreviewOptions } from "@/features/pokedex/queries";
 import { artworkUrl, preloadImage } from "@/features/pokedex/sprites";
 import { TypeBadgeLink, typeTint } from "@/features/pokedex/type-badge";
+import { formatDexNumber } from "@/features/pokedex/dex-number";
 
 /**
  * Donne à un lien (ou à tout autre élément) un aperçu du Pokémon au survol.
@@ -70,7 +71,7 @@ export function PokemonPreview({ identifier, gen }: { identifier: string; gen: n
     return <p className="p-4 text-muted-foreground">Aperçu indisponible pour cette génération.</p>;
   }
 
-  const number = String(data.dexNumber).padStart(4, "0");
+  const number = formatDexNumber(data.dexNumber);
 
   return (
     <div className="flex flex-col">
@@ -80,7 +81,7 @@ export function PokemonPreview({ identifier, gen }: { identifier: string; gen: n
       >
         <span
           aria-hidden="true"
-          className="absolute inset-y-0 right-3 grid place-items-center font-mono text-5xl leading-none font-bold tabular-nums opacity-15"
+          className="absolute inset-y-0 right-3 grid place-items-center font-dot text-5xl leading-none font-black tabular-nums opacity-20"
         >
           {number}
         </span>

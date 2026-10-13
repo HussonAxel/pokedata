@@ -47,7 +47,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Doto:wght@500..900&family=Geist+Mono:wght@400..600&family=Geist:wght@100..900&family=Newsreader:opsz,wght@6..72,400..600&display=swap",
       },
       {
         rel: "stylesheet",

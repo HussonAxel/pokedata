@@ -15,3 +15,6 @@ export function preloadImage(src: string) {
   if (typeof window === "undefined") return;
   new Image().src = src;
 }
+
+/** Sprite chromatique (96 px). */
+export const shinySpriteUrl = (pokemonId: number) => `${SPRITES_URL}/shiny/${pokemonId}.png`;

@@ -1,4 +1,12 @@
+import { Alert, AlertDescription } from "@pokedata/ui/components/alert";
+import { Badge } from "@pokedata/ui/components/badge";
+import { Button } from "@pokedata/ui/components/button";
+import { Item, ItemContent, ItemDescription, ItemTitle } from "@pokedata/ui/components/item";
 import { Link, useParams } from "@tanstack/react-router";
+import { ArrowRightIcon, ConstructionIcon } from "lucide-react";
+
+import { Fact, FactList } from "@/components/fact-list";
+import { PageEyebrow, PageHeader, PageTitle } from "@/components/page-header";
 import { exampleParams, pages, sections, type PageDefinition } from "./pages";
 
 export function PlannedPage({ path }: { path: PageDefinition["path"] }) {
@@ -13,61 +21,80 @@ export function PlannedPage({ path }: { path: PageDefinition["path"] }) {
     return entry.section === page.section;
   });
   const groups = [...new Set(children.map((entry) => entry.section))];
+
   return (
-    <main id="contenu" className="mx-auto w-full max-w-6xl px-5 py-10 md:px-8">
-      <div className="mb-10 max-w-2xl space-y-4">
-        <p className="text-sm text-muted-foreground">Pokedata / {page.section}</p>
-        <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{page.title}</h1>
-        <p className="text-muted-foreground">{page.description}</p>
-        <p className="rounded-lg bg-muted p-4 text-sm">
-          Aperçu du projet : cette page est prévue, son contenu sera ajouté progressivement.
-          {path.includes("$") && " Les liens utilisent des exemples, sans données réelles."}
-        </p>
+    <main
+      id="contenu"
+      className="@container mx-auto flex w-full max-w-6xl flex-col gap-10 px-5 py-8 @2xl:px-8"
+    >
+      <div className="flex max-w-2xl flex-col gap-5">
+        <PageHeader>
+          <PageEyebrow>pokedata ( {page.section} )</PageEyebrow>
+          <PageTitle>{page.title}</PageTitle>
+          <p className="text-muted-foreground">{page.description}</p>
+        </PageHeader>
+        <Alert>
+          <ConstructionIcon />
+          <AlertDescription>
+            Aperçu du projet : cette page est prévue, son contenu sera ajouté progressivement.
+            {path.includes("$") && " Les liens utilisent des exemples, sans données réelles."}
+          </AlertDescription>
+        </Alert>
         {Object.keys(params).length > 0 && (
-          <dl className="flex flex-wrap gap-4 text-sm">
+          <FactList className="grid-flow-col justify-start">
             {Object.entries(params).map(([key, value]) => (
-              <div key={key}>
-                <dt className="text-muted-foreground">{key}</dt>
-                <dd>{value}</dd>
-              </div>
+              <Fact key={key} label={key}>
+                {value}
+              </Fact>
             ))}
-          </dl>
+          </FactList>
         )}
-        <Link to="/plan-du-site" className="inline-block py-2 underline underline-offset-4">
+        <Button
+          variant="outline"
+          size="sm"
+          nativeButton={false}
+          className="self-start"
+          render={<Link to="/plan-du-site" />}
+        >
           Voir toutes les pages prévues
-        </Link>
+          <ArrowRightIcon data-icon="inline-end" />
+        </Button>
       </div>
-      <div className="space-y-10">
-        {groups.map((section) => (
-          <section key={section} aria-label={section}>
-            <h2 className="mb-4 text-xl font-semibold">
-              {isHome ? `Découvrir : ${section}` : section}
-            </h2>
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {children
-                .filter((entry) => entry.section === section)
-                .map((entry) => (
-                  <li key={entry.path}>
-                    <Link
-                      to={entry.path}
-                      params={{ ...exampleParams, ...params }}
-                      preload={false}
-                      className="flex h-full flex-col gap-2 rounded-xl border p-5 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-4"
-                    >
-                      <span className="font-medium">
-                        {entry.title} <span aria-hidden="true">→</span>
-                      </span>
-                      <span className="text-sm text-muted-foreground">{entry.description}</span>
+      {groups.map((section) => (
+        <section key={section} aria-label={section} className="flex flex-col gap-4">
+          <h2 className="label-mono text-muted-foreground">
+            {isHome ? `Découvrir : ${section}` : section}
+          </h2>
+          <ul className="grid gap-3 @lg:grid-cols-2 @4xl:grid-cols-3">
+            {children
+              .filter((entry) => entry.section === section)
+              .map((entry) => (
+                <li key={entry.path}>
+                  <Item
+                    variant="outline"
+                    className="h-full"
+                    render={
+                      <Link
+                        to={entry.path}
+                        params={{ ...exampleParams, ...params }}
+                        preload={false}
+                      />
+                    }
+                  >
+                    <ItemContent>
+                      <ItemTitle>{entry.title}</ItemTitle>
+                      <ItemDescription>{entry.description}</ItemDescription>
                       {entry.path.startsWith("/moi") && (
-                        <span className="text-xs text-muted-foreground">Connexion requise</span>
+                        <Badge variant="outline">Connexion requise</Badge>
                       )}
-                    </Link>
-                  </li>
-                ))}
-            </ul>
-          </section>
-        ))}
-      </div>
+                    </ItemContent>
+                    <ArrowRightIcon aria-hidden="true" className="size-4 text-muted-foreground" />
+                  </Item>
+                </li>
+              ))}
+          </ul>
+        </section>
+      ))}
     </main>
   );
 }

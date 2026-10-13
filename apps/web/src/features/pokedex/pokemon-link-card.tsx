@@ -1,6 +1,14 @@
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@pokedata/ui/components/item";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
+import { DexNumber } from "@/features/pokedex/dex-number";
 import { PokemonPreviewCard } from "@/features/pokedex/pokemon-preview-card";
 import { PokemonSprite } from "@/features/pokedex/pokemon-sprite";
 
@@ -25,21 +33,24 @@ export function PokemonLinkCard({
 }) {
   return (
     <PokemonPreviewCard identifier={identifier} gen={gen}>
-      <Link
-        to="/pokedex/$pokemonId"
-        params={{ pokemonId: identifier }}
-        search={{ gen }}
-        className="flex h-full items-center gap-3 rounded-lg border p-4 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-4"
+      <Item
+        variant="outline"
+        className="h-full flex-nowrap"
+        render={
+          <Link to="/pokedex/$pokemonId" params={{ pokemonId: identifier }} search={{ gen }} />
+        }
       >
-        <PokemonSprite pokemonId={pokemonId} />
-        <span className="flex min-w-0 flex-col items-start gap-1">
-          <span className="text-sm text-muted-foreground">
-            N° {String(dexNumber).padStart(4, "0")}
-          </span>
-          <span className="font-semibold">{name}</span>
+        <ItemMedia>
+          <PokemonSprite pokemonId={pokemonId} />
+        </ItemMedia>
+        <ItemContent className="min-w-0">
+          <ItemDescription>
+            <DexNumber value={dexNumber} className="text-sm" />
+          </ItemDescription>
+          <ItemTitle>{name}</ItemTitle>
           {children}
-        </span>
-      </Link>
+        </ItemContent>
+      </Item>
     </PokemonPreviewCard>
   );
 }

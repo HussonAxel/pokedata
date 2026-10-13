@@ -40,6 +40,7 @@
   "devDependencies": {
     "@pokedata/config": "workspace:*",
     "@shadcn/lint": "^0.1.0",
+    "@tanstack/intent": "^0.5.5",
     "@types/node": "catalog:",
     "lefthook": "^2.1.12",
     "rolldown": "1.2.6",
@@ -50,5 +51,15 @@
   "overrides": {
     "vite": "npm:@voidzero-dev/vite-plus-core@0.3.2"
   },
-  "packageManager": "pnpm@11.9.0"
+  "packageManager": "pnpm@11.9.0",
+  "intent": {
+    "skills": [
+      "@tanstack/react-start",
+      "@tanstack/router-core",
+      "@tanstack/start-client-core",
+      "@tanstack/router-plugin",
+      "@tanstack/start-server-core",
+      "@tanstack/virtual-file-routes"
+    ]
+  }
 }

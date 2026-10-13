@@ -559,7 +559,7 @@ export function FileManager({
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs text-muted-foreground">{eyebrow}</p>
-          <h2 className="cn-font-heading mt-2 text-2xl font-medium tracking-tight">{title}</h2>
+          <h2 className="font-heading mt-2 text-2xl font-medium tracking-tight">{title}</h2>
           <p className="mt-2 text-xs text-muted-foreground">{description}</p>
         </div>
         <div className="flex gap-2">
@@ -760,7 +760,7 @@ export function FileManager({
                           <div className="min-w-0 pr-7">
                             <p
                               title={folder.name}
-                              className="cn-font-heading truncate text-sm font-medium"
+                              className="font-heading truncate text-sm font-medium"
                             >
                               {folder.name}
                             </p>
@@ -793,7 +793,7 @@ export function FileManager({
                           <div className="min-w-0 pr-7">
                             <p
                               title={file.name}
-                              className="cn-font-heading truncate text-sm font-medium"
+                              className="font-heading truncate text-sm font-medium"
                             >
                               {file.name}
                             </p>

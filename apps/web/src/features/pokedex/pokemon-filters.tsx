@@ -71,7 +71,7 @@ export function PokemonFilters({
       </div>
 
       {open ? (
-        <div id={panelId} className="max-h-72 space-y-3 overflow-y-auto">
+        <div id={panelId} className="flex max-h-72 flex-col gap-3 overflow-y-auto">
           <FilterSection label="Génération">
             {reference.generations.map((entry) => (
               <Chip
@@ -119,7 +119,7 @@ export function PokemonFilters({
         </div>
       ) : null}
 
-      <p className="px-1 text-xs text-muted-foreground" aria-live="polite">
+      <p className="label-mono px-1 text-muted-foreground" aria-live="polite">
         {resultCount} Pokémon trouvé{resultCount > 1 ? "s" : ""}
       </p>
     </>
@@ -128,8 +128,8 @@ export function PokemonFilters({
 
 function FilterSection({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-1.5">
-      <h3 className="px-1 text-xs font-medium text-muted-foreground">{label}</h3>
+    <section className="flex flex-col gap-1.5">
+      <h3 className="label-mono px-1 text-muted-foreground">{label}</h3>
       <div className="flex flex-wrap gap-1.5">{children}</div>
     </section>
   );

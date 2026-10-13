@@ -3,6 +3,7 @@ import { ArrowDownIcon, ArrowRightIcon } from "lucide-react";
 
 import { PokemonPreviewCard } from "@/features/pokedex/pokemon-preview-card";
 import { spriteUrl } from "@/features/pokedex/sprites";
+import { DexNumber } from "@/features/pokedex/dex-number";
 
 export type EvolutionStage = {
   speciesId: number;
@@ -114,7 +115,7 @@ function StageCard({
         className="size-24 object-contain"
       />
       <span className="text-sm text-muted-foreground">
-        N° {String(stage.speciesId).padStart(4, "0")}
+        <DexNumber value={stage.speciesId} />
       </span>
       <span className="font-semibold text-balance">{stage.name}</span>
     </Link>

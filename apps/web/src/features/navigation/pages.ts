@@ -1,3 +1,13 @@
+import {
+  CompassIcon,
+  Gamepad2Icon,
+  LibraryIcon,
+  SwordsIcon,
+  UserIcon,
+  UsersIcon,
+  WrenchIcon,
+} from "lucide-react";
+
 import type { FileRouteTypes } from "@/routeTree.gen";
 
 export type PageDefinition = {
@@ -571,36 +581,43 @@ export const sections = [
   {
     title: "Explorer",
     path: "/explorer",
+    icon: CompassIcon,
     description: "Pokédex, encyclopédie et recherche.",
   },
   {
     title: "Stratégie",
     path: "/strategie",
+    icon: SwordsIcon,
     description: "Formats, équipes et analyse compétitive.",
   },
   {
     title: "Collection",
     path: "/collection",
+    icon: LibraryIcon,
     description: "Pokémon, cartes et suivi de collection.",
   },
   {
     title: "Mini-jeux",
     path: "/mini-jeux",
+    icon: Gamepad2Icon,
     description: "Défis, quiz et jeux de connaissance.",
   },
   {
     title: "Communauté",
     path: "/communaute",
+    icon: UsersIcon,
     description: "Discussions et créations des membres.",
   },
   {
     title: "Outils",
     path: "/outils",
+    icon: WrenchIcon,
     description: "Calculateurs et outils pour préparer votre aventure.",
   },
   {
     title: "Mon espace",
     path: "/moi",
+    icon: UserIcon,
     description: "Équipes, collections et progression personnelles.",
   },
 ] as const;

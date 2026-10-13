@@ -25,20 +25,7 @@ export function ColumnsPanel({ className, ...props }: ComponentProps<"div">) {
     <div
       data-slot="columns-panel"
       className={cn(
-        "flex h-full min-h-0 flex-col overflow-hidden rounded-2xl bg-card ring-1 ring-border backdrop-blur-xl",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-export function ColumnsPanelHeader({ className, ...props }: ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="columns-panel-header"
-      className={cn(
-        "flex shrink-0 items-center justify-between gap-4 border-b px-5 py-4",
+        "flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-card ring-1 ring-border backdrop-blur-xl",
         className,
       )}
       {...props}
@@ -65,7 +52,7 @@ export function Column({
     <section
       data-slot="column"
       className={cn(
-        "min-h-0 min-w-0 flex-col border-r last:border-r-0",
+        "min-h-0 min-w-0 flex-col border-r border-dashed last:border-r-0",
         animate &&
           "animate-in fade-in-0 slide-in-from-left-2 duration-200 motion-reduce:animate-none",
         mobile ? "flex flex-1" : "hidden xl:flex",
@@ -89,7 +76,7 @@ export function ColumnHeader({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       data-slot="column-header"
-      className={cn("flex shrink-0 items-center gap-2 border-b p-3", className)}
+      className={cn("flex shrink-0 items-center gap-2 border-b border-dashed p-3", className)}
       {...props}
     />
   );
@@ -183,7 +170,17 @@ export function ColumnItem({
     >
       {children}
       {chevron ? (
-        <ChevronRightIcon aria-hidden="true" className="ml-auto size-4 shrink-0 opacity-50" />
+        <>
+          <ChevronRightIcon
+            aria-hidden="true"
+            className="ml-auto size-4 shrink-0 opacity-50 group-data-selected/item:hidden"
+          />
+          {/* Ligne sélectionnée : le point rouge signal remplace le chevron (docs/design.md). */}
+          <span
+            aria-hidden="true"
+            className="mr-1 ml-auto hidden size-1.5 shrink-0 rounded-full bg-signal group-data-selected/item:block"
+          />
+        </>
       ) : null}
     </Item>
   );

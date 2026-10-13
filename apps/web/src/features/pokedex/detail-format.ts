@@ -58,6 +58,11 @@ export function formatForm(identifier: string) {
   return identifier.replaceAll("-", " ");
 }
 
+/** Première lettre en capitale : « Forme alola » plutôt que « forme alola ». */
+export function capitalize(text: string) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 const REGION_LABELS: Record<string, string> = {
   alola: "d’Alola",
   galar: "de Galar",

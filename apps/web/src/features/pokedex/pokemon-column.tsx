@@ -21,6 +21,7 @@ import { pokedexIndexOptions, pokedexReferenceOptions } from "@/features/pokedex
 import { LATEST_GENERATION, parseTypes, type PokedexSearch } from "@/features/pokedex/search";
 import { artworkUrl, preloadImage, spriteUrl } from "@/features/pokedex/sprites";
 import { TypeBadge, typeTint } from "@/features/pokedex/type-badge";
+import { DexNumber, formatDexNumber } from "@/features/pokedex/dex-number";
 
 const ROW_HEIGHT = 80;
 const ROW_GAP = 8;
@@ -63,7 +64,7 @@ export function PokemonColumn({
 
       return (
         entry.name.toLowerCase().includes(needle) ||
-        String(entry.dexNumber).padStart(4, "0").includes(needle)
+        formatDexNumber(entry.dexNumber).includes(needle)
       );
     });
   }, [index.entries, deferredQuery, types]);
@@ -212,9 +213,7 @@ export function PokemonColumn({
                         <ItemTitle className="w-full">{entry.name}</ItemTitle>
                         <ItemDescription>
                           <span className="flex items-center gap-3">
-                            <span className="shrink-0 font-mono text-xs tabular-nums">
-                              N° {String(entry.dexNumber).padStart(4, "0")}
-                            </span>
+                            <DexNumber value={entry.dexNumber} className="shrink-0 text-sm" />
                             <span className="flex gap-1 [&_img]:size-4">
                               {entry.types.map((identifier) => (
                                 <TypeBadge key={identifier} identifier={identifier} />

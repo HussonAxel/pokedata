@@ -1,15 +1,20 @@
+import { Badge } from "@pokedata/ui/components/badge";
+import { Button } from "@pokedata/ui/components/button";
+import { ItemDescription } from "@pokedata/ui/components/item";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
+import { ArrowLeftIcon, EyeOffIcon } from "lucide-react";
 import { z } from "zod";
-import { cn } from "@pokedata/ui/lib/utils";
-import { EyeOffIcon } from "lucide-react";
+
+import { PageEyebrow, PageHeader, PageMeta, PageTitle } from "@/components/page-header";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@pokedata/ui/components/card";
+  Section,
+  SectionContent,
+  SectionDescription,
+  SectionEmpty,
+  SectionHeader,
+  SectionTitle,
+} from "@/components/section";
 import { formatAbilitySlot, formatVarietyName } from "@/features/pokedex/detail-format";
 import { PokemonLinkCard } from "@/features/pokedex/pokemon-link-card";
 import { talentDetailOptions } from "@/features/pokedex/talent-queries";
@@ -41,79 +46,76 @@ function Page() {
   const hiddenCount = data.pokemon.filter((entry) => entry.isHidden).length;
 
   return (
-    <main id="contenu" className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-10 md:px-8">
-      <Link
-        to="/pokedex"
-        search={{ gen }}
-        className="self-start py-2 text-sm underline underline-offset-4"
+    <main
+      id="contenu"
+      className="@container mx-auto flex w-full max-w-4xl flex-col gap-8 px-5 py-6 @2xl:px-8"
+    >
+      <Button
+        variant="ghost"
+        size="sm"
+        nativeButton={false}
+        className="self-start"
+        render={<Link to="/pokedex" search={{ gen }} />}
       >
-        ← Retour au Pokédex
-      </Link>
-      <header className="flex flex-col gap-3">
-        <p className="text-sm text-muted-foreground">Talent · Génération {gen}</p>
-        <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{data.name}</h1>
-        <p className="text-sm text-muted-foreground">Apparu en génération {data.introducedIn}</p>
-      </header>
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <h2>Description</h2>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>
-            {data.description ?? "Aucune description française disponible pour cette génération."}
-          </p>
-        </CardContent>
-      </Card>
-      <section aria-labelledby="pokemon-title">
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <h2 id="pokemon-title">Pokémon ayant ce talent</h2>
-            </CardTitle>
-            <CardDescription>
-              {data.pokemon.length} Pokémon en génération {gen}
-              {hiddenCount ? `, dont ${hiddenCount} en talent caché` : ""}.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data.pokemon.length ? (
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {data.pokemon.map((entry) => (
-                  <li key={entry.id}>
-                    <PokemonLinkCard
-                      pokemonId={entry.id}
-                      identifier={entry.identifier}
-                      dexNumber={entry.dexNumber}
-                      name={formatVarietyName(entry.name, entry.formSuffix)}
-                      gen={gen}
-                    >
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs",
-                          entry.isHidden
-                            ? "border-primary/40 bg-primary/10 font-medium"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {entry.isHidden ? (
-                          <EyeOffIcon aria-hidden="true" className="size-3" />
-                        ) : null}
+        <ArrowLeftIcon data-icon="inline-start" />
+        Retour au Pokédex
+      </Button>
+      <PageHeader>
+        <PageEyebrow>talent ( génération {gen} )</PageEyebrow>
+        <PageTitle>{data.name}</PageTitle>
+        <PageMeta>Apparu en génération {data.introducedIn}</PageMeta>
+      </PageHeader>
+      <Section id="description">
+        <SectionHeader>
+          <SectionTitle>Description</SectionTitle>
+        </SectionHeader>
+        <SectionContent>
+          {data.description ? (
+            <p className="font-heading text-lg/relaxed">{data.description}</p>
+          ) : (
+            <SectionEmpty>
+              Aucune description française disponible pour cette génération.
+            </SectionEmpty>
+          )}
+        </SectionContent>
+      </Section>
+      <Section id="pokemon">
+        <SectionHeader>
+          <SectionTitle>Pokémon ayant ce talent</SectionTitle>
+          <SectionDescription>
+            {data.pokemon.length} Pokémon en génération {gen}
+            {hiddenCount ? `, dont ${hiddenCount} en talent caché` : ""}.
+          </SectionDescription>
+        </SectionHeader>
+        <SectionContent>
+          {data.pokemon.length ? (
+            <ul className="grid gap-3 @lg:grid-cols-2">
+              {data.pokemon.map((entry) => (
+                <li key={entry.id}>
+                  <PokemonLinkCard
+                    pokemonId={entry.id}
+                    identifier={entry.identifier}
+                    dexNumber={entry.dexNumber}
+                    name={formatVarietyName(entry.name, entry.formSuffix)}
+                    gen={gen}
+                  >
+                    {entry.isHidden ? (
+                      <Badge variant="signal">
+                        <EyeOffIcon data-icon="inline-start" />
                         {formatAbilitySlot(entry)}
-                      </span>
-                    </PokemonLinkCard>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground">
-                Aucun Pokémon ne possède ce talent en génération {gen}.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </section>
+                      </Badge>
+                    ) : (
+                      <ItemDescription>{formatAbilitySlot(entry)}</ItemDescription>
+                    )}
+                  </PokemonLinkCard>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <SectionEmpty>Aucun Pokémon ne possède ce talent en génération {gen}.</SectionEmpty>
+          )}
+        </SectionContent>
+      </Section>
     </main>
   );
 }
