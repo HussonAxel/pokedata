@@ -19,6 +19,7 @@ import {
   STAT_LABELS,
   formatForm,
   formatGender,
+  formatAbilitySlot,
   formatVarietyName,
   formatEvolutionCondition,
   formatMeasurement,
@@ -28,7 +29,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/motion/tabs";
 import { EvolutionTree } from "@/features/pokedex/evolution-tree";
 import { PokemonArtwork } from "@/features/pokedex/pokemon-artwork";
-import { PokemonPreviewCard } from "@/features/pokedex/pokemon-preview-card";
+import { PokemonLinkCard } from "@/features/pokedex/pokemon-link-card";
+import { PokemonSprite } from "@/features/pokedex/pokemon-sprite";
 import {
   pokedexDetailOptions,
   pokedexIndexOptions,
@@ -103,32 +105,6 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="font-medium">{children}</dd>
     </div>
-  );
-}
-
-function PokemonSprite({
-  pokemonId,
-  formIdentifier,
-}: {
-  pokemonId: number;
-  formIdentifier?: string | null;
-}) {
-  const baseUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
-  const fallback = `${baseUrl}/${pokemonId}.png`;
-
-  return (
-    <img
-      src={formIdentifier ? `${baseUrl}/${pokemonId}-${formIdentifier}.png` : fallback}
-      alt=""
-      width={64}
-      height={64}
-      loading="lazy"
-      decoding="async"
-      className="size-16 shrink-0 object-contain"
-      onError={(event) => {
-        if (event.currentTarget.src !== fallback) event.currentTarget.src = fallback;
-      }}
-    />
   );
 }
 
@@ -390,7 +366,7 @@ function Page() {
             {data.abilities.length ? (
               <ul className="grid gap-3 @lg:grid-cols-2 @3xl:grid-cols-3">
                 {data.abilities.map((ability) => {
-                  const talentType = ability.isHidden ? "Talent caché" : `Talent ${ability.slot}`;
+                  const talentType = formatAbilitySlot(ability);
 
                   return (
                     <li key={ability.id}>
@@ -474,23 +450,15 @@ function Page() {
               <ul className="grid gap-3 @lg:grid-cols-2 @3xl:grid-cols-3">
                 {otherVarieties.map((entry) => (
                   <li key={entry.pokemonId}>
-                    <PokemonPreviewCard identifier={entry.identifier} gen={gen}>
-                      <Link
-                        to="/pokedex/$pokemonId"
-                        params={{ pokemonId: entry.identifier }}
-                        search={{ gen }}
-                        className="flex h-full items-center gap-3 rounded-lg border p-4 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-4"
-                      >
-                        <PokemonSprite pokemonId={entry.pokemonId} />
-                        <span className="flex min-w-0 flex-col gap-1">
-                          <span className="text-sm text-muted-foreground">
-                            N° {String(entry.speciesId).padStart(4, "0")}
-                          </span>
-                          <span className="font-semibold">{entry.name}</span>
-                          <span className="text-sm text-muted-foreground">{entry.description}</span>
-                        </span>
-                      </Link>
-                    </PokemonPreviewCard>
+                    <PokemonLinkCard
+                      pokemonId={entry.pokemonId}
+                      identifier={entry.identifier}
+                      dexNumber={entry.speciesId}
+                      name={entry.name}
+                      gen={gen}
+                    >
+                      <span className="text-sm text-muted-foreground">{entry.description}</span>
+                    </PokemonLinkCard>
                   </li>
                 ))}
                 {additionalForms.map((form) => (

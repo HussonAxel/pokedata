@@ -1,7 +1,7 @@
 const SPRITES_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
 
 /** Petit sprite de jeu (96 px), lisible dans une liste. */
-export const spriteUrl = (pokemonId: number) => `${SPRITES_URL}/${pokemonId}.png`;
+export const spriteUrl = (pokemonId: number | string) => `${SPRITES_URL}/${pokemonId}.png`;
 
 /** Illustration officielle (475 px), pour mettre un Pokémon en avant. */
 export const artworkUrl = (pokemonId: number) =>

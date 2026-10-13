@@ -1,7 +1,17 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@pokedata/ui/components/card";
+import { cn } from "@pokedata/ui/lib/utils";
+import { EyeOffIcon } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@pokedata/ui/components/card";
+import { formatAbilitySlot, formatVarietyName } from "@/features/pokedex/detail-format";
+import { PokemonLinkCard } from "@/features/pokedex/pokemon-link-card";
 import { talentDetailOptions } from "@/features/pokedex/talent-queries";
 
 export const Route = createFileRoute("/encyclopedie/talents/$talentId/")({
@@ -27,6 +37,8 @@ function Page() {
     talentDetailOptions({ identifier: talentId, locale: "fr", generationId: gen }),
   );
   if (!data) return null;
+
+  const hiddenCount = data.pokemon.filter((entry) => entry.isHidden).length;
 
   return (
     <main id="contenu" className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-10 md:px-8">
@@ -54,6 +66,54 @@ function Page() {
           </p>
         </CardContent>
       </Card>
+      <section aria-labelledby="pokemon-title">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2 id="pokemon-title">Pokémon ayant ce talent</h2>
+            </CardTitle>
+            <CardDescription>
+              {data.pokemon.length} Pokémon en génération {gen}
+              {hiddenCount ? `, dont ${hiddenCount} en talent caché` : ""}.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {data.pokemon.length ? (
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {data.pokemon.map((entry) => (
+                  <li key={entry.id}>
+                    <PokemonLinkCard
+                      pokemonId={entry.id}
+                      identifier={entry.identifier}
+                      dexNumber={entry.dexNumber}
+                      name={formatVarietyName(entry.name, entry.formSuffix)}
+                      gen={gen}
+                    >
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs",
+                          entry.isHidden
+                            ? "border-primary/40 bg-primary/10 font-medium"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {entry.isHidden ? (
+                          <EyeOffIcon aria-hidden="true" className="size-3" />
+                        ) : null}
+                        {formatAbilitySlot(entry)}
+                      </span>
+                    </PokemonLinkCard>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted-foreground">
+                Aucun Pokémon ne possède ce talent en génération {gen}.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </section>
     </main>
   );
 }

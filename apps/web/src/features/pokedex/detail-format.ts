@@ -111,3 +111,8 @@ export function formatEvolutionCondition(condition: {
       .join(" · ") || "Condition non renseignée"
   );
 }
+
+/** Emplacement d'un talent chez un Pokémon : « Talent 1 », « Talent caché ». */
+export function formatAbilitySlot(ability: { slot: number; isHidden: boolean }) {
+  return ability.isHidden ? "Talent caché" : `Talent ${ability.slot}`;
+}
