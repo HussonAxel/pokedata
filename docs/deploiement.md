@@ -103,8 +103,17 @@ Ce choix évite d'installer un runner GitHub sur le serveur d'un dépôt public.
 
 Le déploiement utilise un répertoire dédié `~/.local/share/pokedata-deploy`,
 indépendant du dossier de développement. Il reconstruit l'image avec le lockfile,
-sauvegarde toute la base, exécute les migrations, remplace le web, puis attend
-son healthcheck. Le projet Docker reste `pokedata` et conserve le volume existant.
+sauvegarde toute la base, exécute les migrations, lance un test de fumée, remplace
+le web, puis attend son healthcheck.
+
+Le test de fumée démarre la nouvelle image dans un conteneur temporaire
+(`pokedata-smoke`, port `127.0.0.1:3002`) sur la base de production, puis vérifie
+que quelques pages clés répondent avec leur contenu rendu côté serveur : accueil,
+Pokédex, fiche Pokémon et son onglet attaques, talent, page de section. Un échec
+laisse le site en place ; la liste des pages est dans `scripts/deploy-production.sh`.
+Le timer exécute une copie installée du script : après une modification, une fois
+la CI passée, la remplacer sur le serveur avec
+`install -m 700 scripts/deploy-production.sh ~/.local/share/pokedata-deploy/deploy-production.sh`. Le projet Docker reste `pokedata` et conserve le volume existant.
 PostgreSQL doit déjà être démarré : cette automatisation met à jour une production
 existante, elle ne réalise pas son initialisation.
 

@@ -66,7 +66,7 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SiteShell>
             <Outlet />
           </SiteShell>

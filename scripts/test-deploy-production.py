@@ -39,6 +39,12 @@ elif name == "git":
     elif "archive" in args:
         with tarfile.open(fileobj=sys.stdout.buffer, mode="w|"):
             pass
+elif name == "curl":
+    fail = os.environ["FAIL"]
+    if fail and fail in args:
+        sys.exit(22)
+    # Every smoke-test marker, so the expected-content check passes.
+    print("Pokedata Pokédex national Pikachu</h1> Attaques apprises Statik</h1> Explorer</h1>")
 elif name == "docker":
     fail = os.environ["FAIL"]
     if fail and fail in args:
@@ -57,6 +63,7 @@ elif name == "docker":
             calls = root / "calls"
             environment = dict(os.environ, PATH=f"{binary}:{os.environ['PATH']}",
                                POKEDATA_DEPLOY_DIR=str(state), CALLS=str(calls),
+                               POKEDATA_SMOKE_ATTEMPTS="1",
                                CONCLUSION=conclusion, CHANGED=str(int(changed)), FAIL=fail)
             result = subprocess.run(["bash", str(SCRIPT)], env=environment,
                                     capture_output=True, text=True)
@@ -97,6 +104,15 @@ elif name == "docker":
         self.assertNotIn("--wait --wait-timeout", log)
         self.assertIsNone(marker)
 
+    def test_failed_smoke_test_does_not_replace_web(self):
+        for failure in ("3002/pokedex/pikachu", "3002/"):
+            code, log, marker = self.run_case(fail=failure)
+            self.assertNotEqual(code, 0)
+            self.assertIn("run -d --no-deps --name pokedata-smoke", log)
+            self.assertNotIn("--wait --wait-timeout", log)
+            self.assertIn("rm -f pokedata-smoke", log)
+            self.assertIsNone(marker)
+
     def test_unhealthy_web_is_not_marked_deployed(self):
         code, log, marker = self.run_case(fail="--wait --wait-timeout")
         self.assertNotEqual(code, 0)
@@ -107,7 +123,8 @@ elif name == "docker":
         self.assertEqual(code, 0)
         self.assertEqual(marker, SHA)
         self.assertLess(log.index("pg_dump"), log.index("--force-recreate migrate"))
-        self.assertLess(log.index("wait migration-container"), log.index("--wait --wait-timeout"))
+        self.assertLess(log.index("wait migration-container"), log.index("pokedata-smoke"))
+        self.assertLess(log.index("3002/pokedex/pikachu"), log.index("--wait --wait-timeout"))
         self.assertIn("curl --fail", log)
 
 

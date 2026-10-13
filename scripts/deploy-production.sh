@@ -56,6 +56,47 @@ if [[ "$migration_exit" != 0 ]]; then
   echo "Migration failed; web container left running. Backup: $backup" >&2
   exit 1
 fi
+
+# Smoke-test the new image on the migrated database before it replaces the
+# running site: a page that fails to render (500, empty SSR) never ships.
+smoke_port="${POKEDATA_SMOKE_PORT:-3002}"
+smoke_attempts="${POKEDATA_SMOKE_ATTEMPTS:-30}"
+smoke_name=pokedata-smoke
+trap 'docker rm -f "$smoke_name" >/dev/null 2>&1 || true' EXIT
+docker rm -f "$smoke_name" >/dev/null 2>&1 || true
+"${compose[@]}" run -d --no-deps --name "$smoke_name" \
+  --publish "127.0.0.1:$smoke_port:3001" web >/dev/null
+smoke_page() {
+  local body
+  body="$(curl --fail --location --silent --show-error --max-time 20 "http://127.0.0.1:$smoke_port$1" | tr -d '\0')" || return 1
+  grep -aqF -- "$2" <<<"$body"
+}
+ready=0
+for _ in $(seq "$smoke_attempts"); do
+  if smoke_page / Pokedata; then ready=1; break; fi
+  sleep 2
+done
+smoke_failed=0
+if [[ "$ready" != 1 ]]; then
+  smoke_failed=1
+else
+  # Each page renders a different feature end to end, data included.
+  while read -r path expected; do
+    smoke_page "$path" "$expected" || { echo "Smoke test failed: $path" >&2; smoke_failed=1; }
+  done <<'PAGES'
+/pokedex Pokédex national
+/pokedex/pikachu Pikachu</h1>
+/pokedex/pikachu?onglet=attaques Attaques apprises
+/encyclopedie/talents/static Statik</h1>
+/explorer Explorer</h1>
+PAGES
+fi
+docker rm -f "$smoke_name" >/dev/null 2>&1 || true
+if [[ "$smoke_failed" != 0 ]]; then
+  echo "Smoke test failed; web container left running. Backup: $backup" >&2
+  exit 1
+fi
+
 "${compose[@]}" up -d --no-deps --wait --wait-timeout 180 web
 "${compose[@]}" --profile tunnel up -d --no-deps cloudflared
 curl --fail --silent --show-error --max-time 20 http://127.0.0.1:3001/ -o /dev/null

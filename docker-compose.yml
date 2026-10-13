@@ -1,4 +1,7 @@
-name: pokedata
+# Nom distinct de la production (`pokedata`, docker-compose.prod.yml) : les
+# volumes sont préfixés par le nom du projet. Avec le même nom, `pnpm db:start`
+# monterait le volume de la base de production sur un second PostgreSQL.
+name: pokedata-dev
 
 services:
   web:
