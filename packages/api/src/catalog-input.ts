@@ -9,6 +9,9 @@ import { formSuffix } from "./evolution-family";
  */
 export const LATEST_GENERATION = 9;
 
+/** Les talents cachés apparaissent en génération 5 (Noir et Blanc). */
+export const HIDDEN_ABILITY_GENERATION = 5;
+
 export const locale = z.enum(["fr", "en"]).default("fr");
 export const generationId = z
   .number()

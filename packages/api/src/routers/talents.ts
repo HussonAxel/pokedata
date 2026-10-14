@@ -10,11 +10,14 @@ import {
 import { and, asc, eq, lte } from "drizzle-orm";
 
 import { abilityDescription } from "../ability-description";
-import { detailInput, pokemonEntryColumns, scopeInput, withFormSuffix } from "../catalog-input";
+import {
+  HIDDEN_ABILITY_GENERATION,
+  detailInput,
+  pokemonEntryColumns,
+  scopeInput,
+  withFormSuffix,
+} from "../catalog-input";
 import { publicProcedure } from "../index";
-
-/** Les talents cachés apparaissent en génération 5 (Noir et Blanc). */
-export const HIDDEN_ABILITY_GENERATION = 5;
 
 /** Talents connus à la génération consultée, par ordre alphabétique. */
 const list = publicProcedure.input(scopeInput).handler(async ({ context, input }) => {

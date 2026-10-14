@@ -36,26 +36,34 @@ import { z } from "zod";
 
 import type { Context } from "../context";
 import { abilityDescription } from "../ability-description";
-import { generationId, locale } from "../catalog-input";
-import { conditionsForForm, formSuffix, resolveEvolutionFamily } from "../evolution-family";
+import { HIDDEN_ABILITY_GENERATION, generationId, locale } from "../catalog-input";
+import {
+  conditionsForForm,
+  formSuffix,
+  isRegionalForm,
+  resolveEvolutionFamily,
+} from "../evolution-family";
 import { publicProcedure } from "../index";
 
 export { LATEST_GENERATION } from "../catalog-input";
 
 /**
- * Index compact du Pokédex : une ligne par variété par défaut, sans description
- * ni statistique. L'intégralité tient en une réponse (~1 025 lignes), ce qui
- * permet de faire la recherche et les filtres dans le navigateur, sans requête
- * réseau à chaque frappe. Les données ne changent qu'à l'import : le client peut
- * la garder en cache indéfiniment.
+ * Index compact du Pokédex : une ligne par variété par défaut, plus les formes
+ * régionales (Alola, Galar, Hisui, Paldea) juste après leur espèce, sans
+ * description ni statistique. L'intégralité tient en une réponse (~1 100
+ * lignes), ce qui permet de faire la recherche et les filtres dans le
+ * navigateur, sans requête réseau à chaque frappe. Les données ne changent
+ * qu'à l'import : le client peut la garder en cache indéfiniment.
  */
 const index = publicProcedure
   .input(z.object({ locale, generationId }))
   .handler(async ({ context, input }) => {
-    const entries = await context.db
+    const rows = await context.db
       .select({
         id: pokemon.id,
         identifier: pokemon.identifier,
+        isDefault: pokemon.isDefault,
+        speciesIdentifier: species.identifier,
         dexNumber: species.id,
         name: speciesName.name,
         types: sql<string[]>`array_agg(${type.identifier} order by ${pokemonType.slot})`,
@@ -76,9 +84,13 @@ const index = publicProcedure
         ),
       )
       .innerJoin(type, eq(type.id, pokemonType.typeId))
-      .where(eq(pokemon.isDefault, true))
       .groupBy(pokemon.id, species.id, speciesName.name)
-      .orderBy(asc(pokemon.id));
+      .orderBy(asc(species.id), asc(pokemon.id));
+
+    const entries = rows.flatMap(({ isDefault, speciesIdentifier, ...row }) => {
+      const suffix = formSuffix({ identifier: row.identifier, isDefault, speciesIdentifier });
+      return isDefault || isRegionalForm(suffix) ? [{ ...row, formSuffix: suffix }] : [];
+    });
 
     return { generationId: input.generationId, entries };
   });
@@ -361,7 +373,15 @@ const detail = publicProcedure
           abilityName,
           and(eq(abilityName.abilityId, ability.id), eq(abilityName.language, input.locale)),
         )
-        .where(eq(pokemonAbility.pokemonId, entry.id))
+        .where(
+          and(
+            eq(pokemonAbility.pokemonId, entry.id),
+            // Pas de talent caché avant la cinquième génération.
+            input.generationId < HIDDEN_ABILITY_GENERATION
+              ? eq(pokemonAbility.isHidden, false)
+              : undefined,
+          ),
+        )
         .orderBy(asc(pokemonAbility.slot)),
       context.db
         .select({
@@ -593,7 +613,15 @@ const preview = publicProcedure
           abilityName,
           and(eq(abilityName.abilityId, ability.id), eq(abilityName.language, input.locale)),
         )
-        .where(eq(pokemonAbility.pokemonId, entry.id))
+        .where(
+          and(
+            eq(pokemonAbility.pokemonId, entry.id),
+            // Pas de talent caché avant la cinquième génération.
+            input.generationId < HIDDEN_ABILITY_GENERATION
+              ? eq(pokemonAbility.isHidden, false)
+              : undefined,
+          ),
+        )
         .orderBy(asc(pokemonAbility.slot)),
       context.db
         .select({
