@@ -1,7 +1,7 @@
 import { Field, FieldDescription, FieldError, FieldLabel } from "@pokedata/ui/components/field";
 import { Input } from "@pokedata/ui/components/input";
 import type { AnyFieldApi } from "@tanstack/react-form";
-import type { ComponentProps, ReactNode } from "react";
+import { useId, type ComponentProps, type ReactNode } from "react";
 
 /**
  * Champ texte relié à un champ TanStack Form : libellé, saisie et erreurs de
@@ -17,13 +17,15 @@ export function FormTextField({
   "id" | "name" | "value" | "onBlur" | "onChange"
 >) {
   const invalid = field.state.meta.isTouched && !field.state.meta.isValid;
-  const descriptionId = `${field.name}-description`;
+  // Connexion et inscription coexistent dans la page : l'id doit être unique.
+  const id = useId();
+  const descriptionId = `${id}-description`;
 
   return (
     <Field data-invalid={invalid || undefined}>
-      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Input
-        id={field.name}
+        id={id}
         name={field.name}
         value={field.state.value}
         aria-invalid={invalid || undefined}

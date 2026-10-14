@@ -5,6 +5,7 @@ import { protectedProcedure, publicProcedure } from "../index";
 import { pokedexRouter } from "./pokedex";
 import { catalogRouter } from "./catalog";
 import { berriesRouter, itemsRouter } from "./items";
+import { memberRouter } from "./member";
 import { movesRouter } from "./moves";
 import { talentsRouter } from "./talents";
 import { typesRouter } from "./types";
@@ -20,6 +21,7 @@ export const appRouter = {
     };
   }),
   catalog: catalogRouter,
+  member: memberRouter,
   pokedex: pokedexRouter,
   talents: talentsRouter,
   moves: movesRouter,

@@ -4,11 +4,11 @@ import { Item, ItemContent, ItemDescription, ItemTitle } from "@pokedata/ui/comp
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowRightIcon, SearchIcon } from "lucide-react";
-import type { ReactElement } from "react";
 
 import { CardGrid, CardGridItem } from "@/components/card-grid";
 import { PageContainer } from "@/components/page-container";
 import { PageEyebrow, PageHeader, PageTitle } from "@/components/page-header";
+import { StatTile } from "@/components/stat-tile";
 import { catalogStatsOptions } from "@/features/encyclopedia/queries";
 import { sections } from "@/features/navigation/pages";
 
@@ -70,24 +70,44 @@ function Page() {
           Le catalogue
         </h2>
         <CardGrid>
-          <StatTile
-            value={stats.pokemon}
-            label="variétés de Pokémon"
-            link={<Link to="/pokedex" />}
-          />
-          <StatTile
-            value={stats.moves}
-            label="attaques"
-            link={<Link to="/encyclopedie/attaques" />}
-          />
-          <StatTile
-            value={stats.abilities}
-            label="talents"
-            link={<Link to="/encyclopedie/talents" />}
-          />
-          <StatTile value={stats.items} label="objets" link={<Link to="/encyclopedie/objets" />} />
-          <StatTile value={stats.berries} label="baies" link={<Link to="/encyclopedie/baies" />} />
-          <StatTile value={stats.types} label="types" link={<Link to="/encyclopedie/types" />} />
+          <CardGridItem>
+            <StatTile
+              value={stats.pokemon}
+              label="variétés de Pokémon"
+              link={<Link to="/pokedex" />}
+            />
+          </CardGridItem>
+          <CardGridItem>
+            <StatTile
+              value={stats.moves}
+              label="attaques"
+              link={<Link to="/encyclopedie/attaques" />}
+            />
+          </CardGridItem>
+          <CardGridItem>
+            <StatTile
+              value={stats.abilities}
+              label="talents"
+              link={<Link to="/encyclopedie/talents" />}
+            />
+          </CardGridItem>
+          <CardGridItem>
+            <StatTile
+              value={stats.items}
+              label="objets"
+              link={<Link to="/encyclopedie/objets" />}
+            />
+          </CardGridItem>
+          <CardGridItem>
+            <StatTile
+              value={stats.berries}
+              label="baies"
+              link={<Link to="/encyclopedie/baies" />}
+            />
+          </CardGridItem>
+          <CardGridItem>
+            <StatTile value={stats.types} label="types" link={<Link to="/encyclopedie/types" />} />
+          </CardGridItem>
         </CardGrid>
       </section>
 
@@ -124,22 +144,5 @@ function Page() {
         </Button>
       </section>
     </PageContainer>
-  );
-}
-
-/** Un chiffre du catalogue en dot-matrix, qui mène à sa liste. */
-function StatTile({ value, label, link }: { value: number; label: string; link: ReactElement }) {
-  return (
-    <CardGridItem>
-      <Item variant="outline" className="h-full" render={link}>
-        <ItemContent>
-          <span className="font-dot text-4xl font-black tabular-nums">
-            {value.toLocaleString("fr-FR")}
-          </span>
-          <ItemDescription>{label}</ItemDescription>
-        </ItemContent>
-        <ArrowRightIcon aria-hidden="true" className="size-4 text-muted-foreground" />
-      </Item>
-    </CardGridItem>
   );
 }

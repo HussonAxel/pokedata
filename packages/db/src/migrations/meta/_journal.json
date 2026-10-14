@@ -43,6 +43,13 @@
       "when": 1791927728188,
       "tag": "0005_encyclopedia_catalog",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791960005842,
+      "tag": "0006_member_space",
+      "breakpoints": true
     }
   ]
 }

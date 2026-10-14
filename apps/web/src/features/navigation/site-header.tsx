@@ -8,9 +8,10 @@ import {
 import { Button } from "@pokedata/ui/components/button";
 import { cn } from "@pokedata/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { SearchIcon, UserIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 
 import { ThemeToggle } from "@/features/navigation/theme-toggle";
+import { UserMenu } from "@/features/navigation/user-menu";
 import { useSearchShortcut } from "@/features/search/use-search-shortcut";
 import type { ShellState } from "@/features/navigation/use-shell-state";
 
@@ -35,25 +36,7 @@ export function SiteHeader({ state }: { state: ShellState }) {
         >
           <SearchIcon />
         </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          nativeButton={false}
-          className="max-sm:hidden"
-          render={<Link to="/login" />}
-        >
-          Connexion
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon-sm"
-          aria-label="Connexion"
-          nativeButton={false}
-          className="sm:hidden"
-          render={<Link to="/login" />}
-        >
-          <UserIcon />
-        </Button>
+        <UserMenu />
         <ThemeToggle />
       </div>
     </header>

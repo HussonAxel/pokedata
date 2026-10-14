@@ -7,6 +7,7 @@ import { Fact, FactList } from "@/components/fact-list";
 import { GenerationSelect } from "@/components/generation-select";
 import { PageEyebrow, PageHeader, PageMeta, PageTitle } from "@/components/page-header";
 import { formatMeasurement, formatVarietyName } from "@/features/pokedex/detail-format";
+import { PokemonMemberActions } from "@/features/member/pokemon-actions";
 import { usePokemonDetail } from "@/features/pokedex/detail/context";
 import { DexNumber } from "@/features/pokedex/dex-number";
 import { PokemonArtwork } from "@/features/pokedex/pokemon-artwork";
@@ -101,6 +102,10 @@ export function PokemonHero() {
           <PageMeta>
             Apparu en génération {pokemon.introducedIn} · Fiche en génération {gen}
           </PageMeta>
+          <PokemonMemberActions
+            pokemonId={pokemon.id}
+            name={formatVarietyName(pokemon.name, pokemon.formSuffix)}
+          />
         </PageHeader>
       </div>
       <PokemonGenerationSelect />

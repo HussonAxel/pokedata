@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ShieldIcon, SwordsIcon } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/motion/tabs";
+import { MULTIPLIER_CLASSES } from "@/features/pokedex/multiplier";
 import { TypeBadgeLink } from "@/features/pokedex/type-badge";
 
 type Matchup = { identifier: string; name: string; multiplier: number };
@@ -30,19 +31,6 @@ const OFFENSE: Relation[] = [
   { multiplier: 0.25, symbol: "×¼", label: "Peu efficace" },
   { multiplier: 0, symbol: "×0", label: "Sans effet" },
 ];
-
-/**
- * Les fonds de la table des types : le vert signe l'attaque efficace, le rouge
- * l'attaque freinée, le plein l'immunité. ×4 et ×¼ foncent la même teinte.
- */
-const MULTIPLIER_CLASSES: Record<number, string> = {
-  4: "bg-success/45 text-foreground",
-  2: "bg-success/25 text-foreground",
-  1: "bg-foreground/5 text-muted-foreground",
-  0.5: "bg-destructive/25 text-foreground",
-  0.25: "bg-destructive/45 text-foreground",
-  0: "bg-foreground/80 text-background",
-};
 
 const typeList = new Intl.ListFormat("fr", { type: "disjunction" });
 
