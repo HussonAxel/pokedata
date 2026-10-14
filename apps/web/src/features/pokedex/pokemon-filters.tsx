@@ -150,6 +150,7 @@ function Chip({
       size="sm"
       variant={pressed ? "default" : "outline"}
       aria-pressed={pressed}
+      data-cuelume-toggle=""
       onClick={onClick}
     >
       {children}

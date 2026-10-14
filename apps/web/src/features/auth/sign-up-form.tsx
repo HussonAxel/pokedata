@@ -8,6 +8,7 @@ import { z } from "zod";
 import { FormTextField } from "@/features/auth/form-text-field";
 import { safeRedirect } from "@/features/auth/redirect";
 import { authClient } from "@/lib/auth-client";
+import { play } from "cuelume";
 
 /** Bornes par défaut de Better Auth (`minPasswordLength`, `maxPasswordLength`). */
 const PASSWORD_MIN = 8;
@@ -28,14 +29,18 @@ export function SignUpForm({ redirectTo }: { redirectTo?: string }) {
   const form = useForm({
     defaultValues: { name: "", email: "", password: "" },
     validators: { onSubmit: schema },
+    // Champ invalide : un son discret, en plus du message sous le champ.
+    onSubmitInvalid: () => play("error"),
     onSubmit: async ({ value }) => {
       await authClient.signUp.email(value, {
         onSuccess: async () => {
+          play("success");
           toast.success("Bienvenue sur Pokedata !");
           await router.invalidate();
           await router.history.push(safeRedirect(redirectTo));
         },
         onError: (error) => {
+          play("error");
           toast.error(error.error.message || "Impossible de créer le compte.");
         },
       });

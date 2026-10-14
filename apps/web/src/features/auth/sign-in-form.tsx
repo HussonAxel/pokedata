@@ -8,6 +8,7 @@ import { z } from "zod";
 import { FormTextField } from "@/features/auth/form-text-field";
 import { safeRedirect } from "@/features/auth/redirect";
 import { authClient } from "@/lib/auth-client";
+import { play } from "cuelume";
 
 const schema = z.object({
   email: z.email("Adresse e-mail invalide."),
@@ -20,14 +21,18 @@ export function SignInForm({ redirectTo }: { redirectTo?: string }) {
   const form = useForm({
     defaultValues: { email: "", password: "" },
     validators: { onSubmit: schema },
+    // Champ invalide : un son discret, en plus du message sous le champ.
+    onSubmitInvalid: () => play("error"),
     onSubmit: async ({ value }) => {
       await authClient.signIn.email(value, {
         onSuccess: async () => {
+          play("success");
           toast.success("Vous êtes connecté.");
           await router.invalidate();
           await router.history.push(safeRedirect(redirectTo));
         },
         onError: () => {
+          play("error");
           // Même message que l'adresse existe ou non : rien n'est révélé.
           toast.error("Adresse e-mail ou mot de passe incorrect.");
         },

@@ -38,6 +38,7 @@ import { TypeBadge } from "@/features/pokedex/type-badge";
 import { PokemonPicker } from "@/features/team/pokemon-picker";
 import { TeamAnalysis } from "@/features/team/team-analysis";
 import { orpc } from "@/utils/orpc";
+import { play } from "cuelume";
 
 const TEAM_SIZE = 6;
 
@@ -103,10 +104,14 @@ function TeamEditor({ team }: { team: Team }) {
   const save = useMutation(
     orpc.member.teams.update.mutationOptions({
       onSuccess: async () => {
+        play("success");
         toast.success("Équipe enregistrée.");
         await onSuccess();
       },
-      onError: () => toast.error("L’équipe n’a pas pu être enregistrée."),
+      onError: () => {
+        play("error");
+        toast.error("L’équipe n’a pas pu être enregistrée.");
+      },
     }),
   );
   const remove = useMutation(
@@ -180,6 +185,7 @@ function TeamEditor({ team }: { team: Team }) {
                   variant="ghost"
                   size="icon-sm"
                   aria-label={`Retirer ${member.name} de l’équipe`}
+                  data-cuelume-close=""
                   onClick={() =>
                     setPokemonIds((current) => current.filter((_, index) => index !== slot))
                   }
@@ -225,7 +231,13 @@ function DeleteTeamButton({ onConfirm }: { onConfirm: () => void }) {
         </DialogHeader>
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>Annuler</DialogClose>
-          <Button variant="destructive" onClick={onConfirm}>
+          {/* Action destructive : le seul son « fort » du site. */}
+          <Button
+            variant="destructive"
+            data-cuelume-close=""
+            data-cuelume-emphasis="strong"
+            onClick={onConfirm}
+          >
             Supprimer l’équipe
           </Button>
         </DialogFooter>

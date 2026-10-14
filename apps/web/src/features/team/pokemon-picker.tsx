@@ -91,6 +91,7 @@ export function PokemonPicker({
                   render={
                     <button
                       type="button"
+                      data-cuelume-select=""
                       onClick={() => {
                         onPick(entry);
                         setOpen(false);

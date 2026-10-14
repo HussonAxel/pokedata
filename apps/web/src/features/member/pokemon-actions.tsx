@@ -56,6 +56,7 @@ function MemberToggles({ pokemonId, name }: { pokemonId: number; name: string })
         variant={isFavorite ? "default" : "outline"}
         size="sm"
         aria-pressed={isFavorite}
+        data-cuelume-toggle=""
         disabled={!status}
         onClick={() => favorite.mutate({ pokemonId, value: !isFavorite })}
       >
@@ -66,6 +67,7 @@ function MemberToggles({ pokemonId, name }: { pokemonId: number; name: string })
         variant={isCaught ? "default" : "outline"}
         size="sm"
         aria-pressed={isCaught}
+        data-cuelume-toggle=""
         disabled={!status}
         onClick={() => caught.mutate({ pokemonId, value: !isCaught })}
       >

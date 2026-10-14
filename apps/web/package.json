@@ -27,6 +27,7 @@
     "@tanstack/react-virtual": "^3.14.13",
     "better-auth": "catalog:",
     "clsx": "^2.1.1",
+    "cuelume": "^0.2.6",
     "dotenv": "catalog:",
     "evlog": "^2.27.1",
     "lucide-react": "catalog:",

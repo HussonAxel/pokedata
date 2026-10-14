@@ -97,6 +97,7 @@ export function SectionRail({ state }: { state: ShellState }) {
           title={toggleLabel}
           aria-expanded={navigationExpanded}
           aria-controls="navigation-pages"
+          data-cuelume-toggle=""
         >
           {navigationExpanded ? <PanelLeftCloseIcon /> : <MenuIcon />}
         </Button>
@@ -109,6 +110,7 @@ export function SectionRail({ state }: { state: ShellState }) {
             aria-label={title}
             title={title}
             aria-current={active === title ? "true" : undefined}
+            data-cuelume-navigate=""
             render={<Link to={path} preload={false} />}
           >
             <Icon />

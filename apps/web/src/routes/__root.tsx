@@ -10,6 +10,7 @@ import { ThemeProvider } from "next-themes";
 import type { orpc } from "@/utils/orpc";
 
 import { SiteShell } from "@/features/navigation/site-shell";
+import { SoundProvider } from "@/features/sound/sound-provider";
 
 import appCss from "../index.css?url";
 export interface RouterAppContext {
@@ -65,11 +66,14 @@ function RootDocument() {
       <head>
         <HeadContent />
       </head>
-      <body>
+      {/* Tous les sons sont discrets par défaut ; une action rare peut forcer `strong`. */}
+      <body data-cuelume-emphasis="subtle">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <SiteShell>
-            <Outlet />
-          </SiteShell>
+          <SoundProvider>
+            <SiteShell>
+              <Outlet />
+            </SiteShell>
+          </SoundProvider>
           <Toaster richColors />
           {import.meta.env.DEV && <TanStackRouterDevtools position="bottom-left" />}
           {import.meta.env.DEV && (

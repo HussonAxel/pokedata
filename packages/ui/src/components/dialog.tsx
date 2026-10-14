@@ -10,7 +10,7 @@ function Dialog({ ...props }: DialogPrimitive.Root.Props) {
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
+  return <DialogPrimitive.Trigger data-slot="dialog-trigger" data-cuelume-open="" {...props} />;
 }
 
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
@@ -18,7 +18,7 @@ function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
 }
 
 function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
+  return <DialogPrimitive.Close data-slot="dialog-close" data-cuelume-close="" {...props} />;
 }
 
 function DialogBackdrop({ className, ...props }: DialogPrimitive.Backdrop.Props) {
@@ -55,6 +55,7 @@ function DialogContent({
         {showCloseButton ? (
           <DialogPrimitive.Close
             data-slot="dialog-close-button"
+            data-cuelume-close=""
             aria-label="Fermer"
             className="absolute top-3 right-3 inline-flex size-7 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring [&_svg]:size-4"
           >

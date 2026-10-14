@@ -12,6 +12,7 @@ export function ThemeToggle() {
     <Within
       aria-label="Thème sombre"
       aria-pressed={isDark}
+      data-cuelume-toggle=""
       title={isDark ? "Passer au thème clair" : "Passer au thème sombre"}
       className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-lg text-foreground ring-1 ring-border transition-colors hover:bg-accent active:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       onClick={() => setTheme(isDark ? "light" : "dark")}

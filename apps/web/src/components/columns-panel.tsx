@@ -162,6 +162,8 @@ export function ColumnItem({
   return (
     <Item
       variant={inList ? "column-indicator" : "column"}
+      // Chaque ligne ouvre une page : son de navigation (cuelume).
+      data-cuelume-navigate=""
       size="row"
       data-selected={selected || undefined}
       aria-current={selected ? "true" : undefined}

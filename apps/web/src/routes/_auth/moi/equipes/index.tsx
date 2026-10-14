@@ -23,6 +23,7 @@ import { memberKey, teamsOptions } from "@/features/member/queries";
 import { LATEST_GENERATION } from "@/features/pokedex/search";
 import { spriteUrl } from "@/features/pokedex/sprites";
 import { orpc } from "@/utils/orpc";
+import { play } from "cuelume";
 
 const GENERATIONS = Array.from({ length: LATEST_GENERATION }, (_, index) => index + 1);
 const updatedAt = new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" });
@@ -95,10 +96,14 @@ function NewTeamForm() {
   const create = useMutation(
     orpc.member.teams.create.mutationOptions({
       onSuccess: async ({ id }) => {
+        play("success");
         await queryClient.invalidateQueries({ queryKey: memberKey });
         await navigate({ to: "/moi/equipes/$equipeId/modifier", params: { equipeId: id } });
       },
-      onError: () => toast.error("L’équipe n’a pas pu être créée."),
+      onError: () => {
+        play("error");
+        toast.error("L’équipe n’a pas pu être créée.");
+      },
     }),
   );
 

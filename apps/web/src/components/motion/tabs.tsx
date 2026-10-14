@@ -394,6 +394,8 @@ export function TabsTrigger({
     "aria-selected": active,
     "aria-controls": panelId(layoutId, value),
     tabIndex: active ? 0 : -1,
+    // Son « select » des onglets (cuelume, voir SoundProvider).
+    "data-cuelume-select": "",
   } as const;
 
   if (variant === "underline") {

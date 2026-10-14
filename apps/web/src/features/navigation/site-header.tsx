@@ -13,6 +13,7 @@ import { SearchIcon } from "lucide-react";
 import { ThemeToggle } from "@/features/navigation/theme-toggle";
 import { UserMenu } from "@/features/navigation/user-menu";
 import { useSearchShortcut } from "@/features/search/use-search-shortcut";
+import { SoundToggle } from "@/features/sound/sound-toggle";
 import type { ShellState } from "@/features/navigation/use-shell-state";
 
 /** Barre givrée flottante, détachée du panneau à colonnes (docs/design.md). */
@@ -37,6 +38,7 @@ export function SiteHeader({ state }: { state: ShellState }) {
           <SearchIcon />
         </Button>
         <UserMenu />
+        <SoundToggle />
         <ThemeToggle />
       </div>
     </header>

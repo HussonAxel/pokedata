@@ -73,6 +73,28 @@ variante du composant, pas une classe ajoutée à l'usage.
   valeurs chiffrées en `TableCell variant="numeric"`.
 - **Boutons** : rayon 6 px ; primaire en encre pleine, secondaire en voile.
 
+## Sons
+
+Sons d'interface synthétisés par [cuelume](https://cuelume-site.pages.dev/docs/#which-cue),
+discrets par défaut (`data-cuelume-emphasis="subtle"` sur `<body>`) et coupables
+depuis l'en-tête (`SoundToggle`, choix retenu dans le navigateur). On choisit le son
+par sa fonction, d'après le tableau « Which cue? » ; un seul son par action.
+
+| Élément                                            | Son                   | Où                                                    |
+| -------------------------------------------------- | --------------------- | ----------------------------------------------------- |
+| Ligne d'une colonne, icône du rail                 | `navigate`            | `ColumnItem`, `SectionRail`                           |
+| Pokémon précédent / suivant                        | `navigate` (± `back`) | `PokemonPager`, `play()`                              |
+| Onglet, option de menu ou de liste déroulante      | `select`              | `TabsTrigger`, `DropdownMenuItem`, `SelectItem`       |
+| Favori, capturé, filtre, thème, son, liste masquée | `toggle`              | `data-cuelume-toggle`                                 |
+| Ouverture / fermeture de fenêtre ou de menu        | `open` / `close`      | `DialogTrigger`, `DialogClose`, `DropdownMenuTrigger` |
+| Suppression confirmée                              | `close`, `strong`     | le seul son fort du site                              |
+| Enregistré, connecté, équipe créée                 | `success`             | `play()` dans `onSuccess`                             |
+| Formulaire refusé, échec d'enregistrement          | `error`               | `play()` dans `onError` / `onSubmitInvalid`           |
+
+Jamais de son au survol, à la frappe, au chargement d'une page ou pour une valeur
+qui change toute seule. Les primitives `packages/ui` portent déjà leurs attributs :
+une nouvelle fenêtre, un nouvel onglet ou un nouveau menu sonnent sans rien ajouter.
+
 ## À faire / à éviter
 
 - Faire : aligner sur une grille, numéroter, étiqueter, laisser du vide.

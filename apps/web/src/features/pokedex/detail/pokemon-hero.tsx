@@ -14,6 +14,7 @@ import { PokemonArtwork } from "@/features/pokedex/pokemon-artwork";
 import { pokedexIndexOptions } from "@/features/pokedex/queries";
 import { LATEST_GENERATION } from "@/features/pokedex/search";
 import { TypeBadgeLink } from "@/features/pokedex/type-badge";
+import { play } from "cuelume";
 
 const ROUTE = "/pokedex/$pokemonId/";
 
@@ -41,6 +42,7 @@ export function PokemonPager() {
               to="/pokedex/$pokemonId"
               params={{ pokemonId: previous.identifier }}
               search={search}
+              onClick={() => play("navigate", { direction: "back" })}
             />
           }
         >
@@ -60,6 +62,7 @@ export function PokemonPager() {
               to="/pokedex/$pokemonId"
               params={{ pokemonId: next.identifier }}
               search={search}
+              onClick={() => play("navigate")}
             />
           }
         >

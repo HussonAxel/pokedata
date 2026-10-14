@@ -34,6 +34,7 @@ export function DetailToolbar({ column }: { column: ItemsColumnId }) {
         className="hidden xl:inline-flex"
         aria-expanded={!listHidden}
         aria-controls="items-list"
+        data-cuelume-toggle=""
         onClick={toggleList}
       >
         {listHidden ? (
