@@ -8,13 +8,16 @@ import {
 import { Button } from "@pokedata/ui/components/button";
 import { cn } from "@pokedata/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { UserIcon } from "lucide-react";
+import { SearchIcon, UserIcon } from "lucide-react";
 
 import { ThemeToggle } from "@/features/navigation/theme-toggle";
+import { useSearchShortcut } from "@/features/search/use-search-shortcut";
 import type { ShellState } from "@/features/navigation/use-shell-state";
 
 /** Barre givrée flottante, détachée du panneau à colonnes (docs/design.md). */
 export function SiteHeader({ state }: { state: ShellState }) {
+  useSearchShortcut();
+
   return (
     <header className="flex h-14 shrink-0 items-center justify-between gap-4 rounded-xl bg-card px-4 ring-1 ring-border backdrop-blur-xl">
       <div className="flex min-w-0 items-center gap-4">
@@ -22,6 +25,16 @@ export function SiteHeader({ state }: { state: ShellState }) {
         <Crumbs state={state} />
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          nativeButton={false}
+          aria-label="Rechercher (/)"
+          title="Rechercher (/ ou Ctrl+K)"
+          render={<Link to="/recherche" />}
+        >
+          <SearchIcon />
+        </Button>
         <Button
           variant="secondary"
           size="sm"

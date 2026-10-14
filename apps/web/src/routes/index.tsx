@@ -1,51 +1,33 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRightIcon, CompassIcon, LibraryIcon, SwordsIcon } from "lucide-react";
-
+import { Badge } from "@pokedata/ui/components/badge";
 import { Button } from "@pokedata/ui/components/button";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@pokedata/ui/components/card";
-import { Separator } from "@pokedata/ui/components/separator";
+import { Item, ItemContent, ItemDescription, ItemTitle } from "@pokedata/ui/components/item";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { ArrowRightIcon, SearchIcon } from "lucide-react";
+import type { ReactElement } from "react";
+
+import { CardGrid, CardGridItem } from "@/components/card-grid";
+import { PageContainer } from "@/components/page-container";
+import { PageEyebrow, PageHeader, PageTitle } from "@/components/page-header";
+import { catalogStatsOptions } from "@/features/encyclopedia/queries";
 import { sections } from "@/features/navigation/pages";
 
-const featuredSections = [
-  {
-    path: "/explorer",
-    title: "Explorer",
-    description: "Découvrez les Pokémon, leurs évolutions et les relations entre les types.",
-    icon: CompassIcon,
-  },
-  {
-    path: "/strategie",
-    title: "Stratégie",
-    description:
-      "Un espace prévu pour les formats de combat, les équipes et l’analyse compétitive.",
-    icon: SwordsIcon,
-  },
-  {
-    path: "/collection",
-    title: "Collection",
-    description: "Un espace prévu pour réunir vos Pokémon, vos cartes et suivre votre collection.",
-    icon: LibraryIcon,
-  },
-] as const;
+const SCOPE = { locale: "fr", generationId: 9 } as const;
 
-const otherSections = sections.filter(
-  (section) => !featuredSections.some((featured) => featured.path === section.path),
-);
+/** Sections du site qui n'ont encore que des pages prévues. */
+const PLANNED_SECTIONS = sections.filter((section) => section.path !== "/explorer");
 
 export const Route = createFileRoute("/")({
+  loader: async ({ context }) => {
+    await context.queryClient.ensureQueryData(catalogStatsOptions(SCOPE));
+  },
   head: () => ({
     meta: [
       { title: "Pokedata · Explorez l’univers Pokémon" },
       {
         name: "description",
         content:
-          "Explorez le Pokédex et la table des types de Pokedata. Découvrez les espaces consacrés à la stratégie et à la collection Pokémon.",
+          "Pokédex, talents, attaques, objets, baies et table des types, génération par génération.",
       },
     ],
   }),
@@ -53,123 +35,111 @@ export const Route = createFileRoute("/")({
 });
 
 function Page() {
+  const { data: stats } = useSuspenseQuery(catalogStatsOptions(SCOPE));
+
   return (
-    <main id="contenu" className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-5 py-10 md:px-8">
-      <div className="flex max-w-2xl flex-col items-start gap-5">
-        <p className="text-sm font-medium text-muted-foreground">
-          Explorer. Comprendre. Collectionner.
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-balance md:text-5xl">
-          Votre compagnon pour explorer l’univers Pokémon.
-        </h1>
-        <p className="max-w-xl text-muted-foreground">
-          Du premier Pokémon à votre prochaine équipe, Pokedata rassemble les connaissances pour
-          accompagner votre aventure.
-        </p>
+    <PageContainer className="gap-10">
+      <div className="flex max-w-3xl flex-col items-start gap-6">
+        <PageHeader>
+          <PageEyebrow>pokedata ( génération {stats.generationId} )</PageEyebrow>
+          <PageTitle>Le catalogue Pokémon, mesuré et numéroté.</PageTitle>
+          <p className="max-w-xl text-muted-foreground">
+            Fiches, statistiques, talents, attaques et relations de types, consultables pour chaque
+            génération. Du premier Pokémon à votre prochaine équipe.
+          </p>
+        </PageHeader>
         <div className="flex flex-wrap gap-3">
           <Button size="lg" nativeButton={false} render={<Link to="/pokedex" />}>
-            Explorer le Pokédex
-            <ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
+            Ouvrir le Pokédex
+            <ArrowRightIcon data-icon="inline-end" />
           </Button>
           <Button
             size="lg"
             variant="outline"
             nativeButton={false}
-            render={<Link to="/encyclopedie/types" />}
+            render={<Link to="/recherche" />}
           >
-            Consulter la table des types
+            <SearchIcon data-icon="inline-start" />
+            Rechercher
           </Button>
         </div>
       </div>
 
-      <section aria-labelledby="univers-title" className="flex flex-col gap-4">
-        <h2 id="univers-title" className="text-xl font-semibold tracking-tight">
-          À chaque passion, son univers
+      <section aria-labelledby="catalogue-title" className="flex flex-col gap-4">
+        <h2 id="catalogue-title" className="label-mono text-muted-foreground">
+          Le catalogue
         </h2>
-        <ul className="grid gap-4 @2xl:grid-cols-3">
-          {featuredSections.map(({ path, title, description, icon: Icon }) => (
-            <li key={path}>
-              <Link
-                to={path}
-                preload={false}
-                className="block h-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        <CardGrid>
+          <StatTile
+            value={stats.pokemon}
+            label="variétés de Pokémon"
+            link={<Link to="/pokedex" />}
+          />
+          <StatTile
+            value={stats.moves}
+            label="attaques"
+            link={<Link to="/encyclopedie/attaques" />}
+          />
+          <StatTile
+            value={stats.abilities}
+            label="talents"
+            link={<Link to="/encyclopedie/talents" />}
+          />
+          <StatTile value={stats.items} label="objets" link={<Link to="/encyclopedie/objets" />} />
+          <StatTile value={stats.berries} label="baies" link={<Link to="/encyclopedie/baies" />} />
+          <StatTile value={stats.types} label="types" link={<Link to="/encyclopedie/types" />} />
+        </CardGrid>
+      </section>
+
+      <section aria-labelledby="bientot-title" className="flex flex-col gap-4">
+        <h2 id="bientot-title" className="label-mono text-muted-foreground">
+          En préparation
+        </h2>
+        <CardGrid>
+          {PLANNED_SECTIONS.map((section) => (
+            <CardGridItem key={section.path}>
+              <Item
+                variant="outline"
+                className="h-full"
+                render={<Link to={section.path} preload={false} />}
               >
-                <Card className="h-full">
-                  <CardHeader>
-                    <Icon aria-hidden="true" className="mb-3 size-6 text-muted-foreground" />
-                    <CardTitle>
-                      <h3>{title}</h3>
-                    </CardTitle>
-                    <CardDescription>{description}</CardDescription>
-                  </CardHeader>
-                  <CardFooter className="mt-auto justify-between">
-                    <span>
-                      Découvrir{" "}
-                      {title === "Collection"
-                        ? "la collection"
-                        : title === "Stratégie"
-                          ? "la stratégie"
-                          : "l’exploration"}
-                    </span>
-                    <ArrowRightIcon aria-hidden="true" className="size-4" />
-                  </CardFooter>
-                </Card>
-              </Link>
-            </li>
+                <ItemContent>
+                  <ItemTitle>{section.title}</ItemTitle>
+                  <ItemDescription>{section.description}</ItemDescription>
+                </ItemContent>
+                <Badge variant="outline">Prévu</Badge>
+              </Item>
+            </CardGridItem>
           ))}
-        </ul>
-      </section>
-
-      <Separator />
-
-      <section aria-labelledby="avancement-title" className="flex flex-col gap-5">
-        <div className="flex flex-col items-start gap-2">
-          <p className="text-xs font-medium text-muted-foreground">
-            Projet en cours de développement
-          </p>
-          <h2 id="avancement-title" className="text-xl font-semibold tracking-tight">
-            Pokedata prend forme
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Les premiers outils sont en place. Les autres espaces s’enrichiront progressivement.
-          </p>
-        </div>
-        <dl className="grid gap-5 @xl:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <dt className="text-sm font-medium">À explorer dès maintenant</dt>
-            <dd className="text-sm text-muted-foreground">
-              Le Pokédex, les fiches Pokémon et la table des types par génération.
-            </dd>
-          </div>
-          <div className="flex flex-col gap-2">
-            <dt className="text-sm font-medium">Les espaces prévus</dt>
-            <dd className="text-sm text-muted-foreground">
-              Stratégie, suivi de collection, mini-jeux, communauté et outils pour votre aventure.
-            </dd>
-          </div>
-        </dl>
-      </section>
-
-      <footer className="flex flex-col gap-3 pb-2">
-        <nav aria-label="Autres univers de Pokedata" className="flex flex-wrap gap-x-5 gap-y-2">
-          {otherSections.map((section) => (
-            <Link
-              key={section.path}
-              to={section.path}
-              preload={false}
-              className="py-2 text-sm text-muted-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-            >
-              {section.title}
-            </Link>
-          ))}
-        </nav>
-        <Link
-          to="/plan-du-site"
-          className="w-fit py-2 text-xs text-muted-foreground underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        </CardGrid>
+        <Button
+          variant="ghost"
+          size="sm"
+          nativeButton={false}
+          className="self-start"
+          render={<Link to="/plan-du-site" />}
         >
           Voir le plan du site
-        </Link>
-      </footer>
-    </main>
+          <ArrowRightIcon data-icon="inline-end" />
+        </Button>
+      </section>
+    </PageContainer>
+  );
+}
+
+/** Un chiffre du catalogue en dot-matrix, qui mène à sa liste. */
+function StatTile({ value, label, link }: { value: number; label: string; link: ReactElement }) {
+  return (
+    <CardGridItem>
+      <Item variant="outline" className="h-full" render={link}>
+        <ItemContent>
+          <span className="font-dot text-4xl font-black tabular-nums">
+            {value.toLocaleString("fr-FR")}
+          </span>
+          <ItemDescription>{label}</ItemDescription>
+        </ItemContent>
+        <ArrowRightIcon aria-hidden="true" className="size-4 text-muted-foreground" />
+      </Item>
+    </CardGridItem>
   );
 }

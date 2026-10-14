@@ -91,6 +91,8 @@ else
 /encyclopedie/attaques/thunderbolt Tonnerre</h1>
 /encyclopedie/types/fire Feu</h1>
 /explorer Explorer</h1>
+/recherche?q=pika Pikachu
+/login Se connecter
 PAGES
 fi
 docker rm -f "$smoke_name" >/dev/null 2>&1 || true

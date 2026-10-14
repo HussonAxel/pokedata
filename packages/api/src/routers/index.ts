@@ -3,6 +3,7 @@ import type { InferRouterOutputs, RouterClient } from "@orpc/server";
 import { protectedProcedure, publicProcedure } from "../index";
 
 import { pokedexRouter } from "./pokedex";
+import { catalogRouter } from "./catalog";
 import { berriesRouter, itemsRouter } from "./items";
 import { movesRouter } from "./moves";
 import { talentsRouter } from "./talents";
@@ -18,6 +19,7 @@ export const appRouter = {
       user: context.session?.user,
     };
   }),
+  catalog: catalogRouter,
   pokedex: pokedexRouter,
   talents: talentsRouter,
   moves: movesRouter,

@@ -13,11 +13,16 @@ export const encyclopediaSearchSchema = z.object({
 
 export type EncyclopediaSearch = z.infer<typeof encyclopediaSearchSchema>;
 
-/** Recherche insensible à la casse et aux accents : « electrik » trouve « Électrik ». */
+/**
+ * Recherche insensible à la casse et aux accents : « electrik » trouve
+ * « Électrik », « oeil » trouve « Œil Composé » (une ligature n'est pas un accent).
+ */
 export function normalizeSearch(text: string) {
   return text
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
+    .replaceAll("œ", "oe")
+    .replaceAll("æ", "ae")
     .trim();
 }

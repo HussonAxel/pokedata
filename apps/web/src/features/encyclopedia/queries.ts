@@ -33,3 +33,7 @@ export const berryDetailOptions = (scope: DetailScope) =>
 
 export const typeDetailOptions = (scope: DetailScope) =>
   orpc.types.detail.queryOptions({ input: scope, staleTime: CATALOG_STALE_TIME });
+
+/** Taille du catalogue, pour l'accueil. */
+export const catalogStatsOptions = (scope: CatalogScope) =>
+  orpc.catalog.stats.queryOptions({ input: scope, staleTime: CATALOG_STALE_TIME });
