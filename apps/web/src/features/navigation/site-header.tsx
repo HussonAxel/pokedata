@@ -65,20 +65,24 @@ function Crumbs({ state }: { state: ShellState }) {
   return (
     <Breadcrumb
       aria-label="Fil d'Ariane"
-      className={cn("min-w-0", state.compact ? "max-sm:hidden" : "xl:hidden")}
+      className={cn("min-w-0 overflow-hidden", state.compact ? "max-sm:hidden" : "xl:hidden")}
     >
-      <BreadcrumbList className="flex-nowrap">
-        <BreadcrumbSeparator>/</BreadcrumbSeparator>
-        <BreadcrumbItem className="shrink-0">
-          <BreadcrumbLink render={<Link to={state.section.path} preload={false} />}>
-            {state.section.title}
+      <BreadcrumbList className="min-w-0 flex-nowrap">
+        {/* Sur petit écran, seul le dernier niveau reste : la section cède la place à la page. */}
+        <BreadcrumbSeparator className={cn(state.page && "max-sm:hidden")}>/</BreadcrumbSeparator>
+        <BreadcrumbItem className={cn("min-w-0", state.page ? "shrink-0 max-sm:hidden" : "")}>
+          <BreadcrumbLink
+            className="min-w-0"
+            render={<Link to={state.section.path} preload={false} />}
+          >
+            <span className="block truncate">{state.section.title}</span>
           </BreadcrumbLink>
         </BreadcrumbItem>
         {state.page ? (
           <>
             <BreadcrumbSeparator>/</BreadcrumbSeparator>
             <BreadcrumbItem className="min-w-0">
-              <BreadcrumbLink render={<Link to={state.page.path} />}>
+              <BreadcrumbLink className="min-w-0" render={<Link to={state.page.path} />}>
                 <span className="block truncate">{state.page.title}</span>
               </BreadcrumbLink>
             </BreadcrumbItem>

@@ -1,6 +1,6 @@
 import { Button } from "@pokedata/ui/components/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useHydrated, useLocation } from "@tanstack/react-router";
 import { CircleCheckIcon, HeartIcon } from "lucide-react";
 
 import { memberKey, pokemonStatusOptions } from "@/features/member/queries";
@@ -15,7 +15,10 @@ export function PokemonMemberActions({ pokemonId, name }: { pokemonId: number; n
   const { data: session, isPending } = authClient.useSession();
   const href = useLocation({ select: (location) => location.href });
 
-  if (isPending) return null;
+  // La session n'est connue du client qu'après l'hydratation : rien avant.
+  const hydrated = useHydrated();
+
+  if (!hydrated || isPending) return null;
 
   if (!session) {
     return (

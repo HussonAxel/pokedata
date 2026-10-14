@@ -10,7 +10,7 @@ import {
 } from "@pokedata/ui/components/dropdown-menu";
 import { Skeleton } from "@pokedata/ui/components/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useHydrated, useRouter } from "@tanstack/react-router";
 import { LogOutIcon, UserIcon } from "lucide-react";
 
 import { memberKey } from "@/features/member/queries";
@@ -22,7 +22,10 @@ export function UserMenu() {
   const queryClient = useQueryClient();
   const { data: session, isPending } = authClient.useSession();
 
-  if (isPending) return <Skeleton className="h-7 w-24" />;
+  // La session n'est connue du client qu'après l'hydratation : même rendu avant.
+  const hydrated = useHydrated();
+
+  if (!hydrated || isPending) return <Skeleton className="h-7 w-24" />;
 
   if (!session) {
     return (
